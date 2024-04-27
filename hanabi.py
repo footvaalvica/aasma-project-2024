@@ -1,5 +1,4 @@
 from pettingzoo.classic import hanabi_v5
-
 env = hanabi_v5.env(render_mode="human")
 env.reset(seed=42)
 
