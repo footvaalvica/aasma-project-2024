@@ -12,7 +12,6 @@
 
   enterShell = ''
     hello
-    git --version
   '';
 
   # https://devenv.sh/tests/
@@ -21,14 +20,12 @@
     git --version | grep "2.42.0"
   '';
 
-  languages.python.enable = true;
-  languages.python.venv.enable = true;
-
   # https://devenv.sh/services/
   # services.postgres.enable = true;
 
   # https://devenv.sh/languages/
-  # languages.nix.enable = true;
+  languages.python.enable = true;
+  languages.python.venv.enable = true;
 
   # https://devenv.sh/pre-commit-hooks/
   # pre-commit.hooks.shellcheck.enable = true;
