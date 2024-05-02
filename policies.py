@@ -1,13 +1,12 @@
-# Legal random
+# Description: This file contains the Policy class which is responsible for generating the policies for the agent.
 
 from rules import *
+class Policy:
+    def __init__(self, env, agent, mask, obs):
+        self.rule = Rule(env, agent, mask, obs)
 
-def legal_random(env, agent, mask, obs):
-    return env.action_space(agent).sample(mask)
+    def legal_random(self):
+        return self.rule.env.action_space(self.rule.agent).sample(self.rule.mask)
 
-# MCS - Monte Carlo Search (MCTS with depth limit of 1) using "Legal Random" policy for the rollout phase
-
-
-# Flawed
-def flawed(env, agent, mask, obs):
-    return env.action_space(agent).sample(mask)
+    def flawed(self):
+        pass  # Implement the flawed policy here

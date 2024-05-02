@@ -27,9 +27,8 @@ for agent in env.agent_iter():
 
         print("revealed rank", obs[338:343])
 
-
-
-        action = legal_random(env, agent, mask, obs)
+        policy = Policy(env, agent, mask, obs)
+        action = policy.legal_random()
 
     env.step(action)
 env.close()
