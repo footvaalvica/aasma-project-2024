@@ -127,6 +127,8 @@ class Rule:
         if sum(self._play_mask) == 0:
             return None
 
+        # TODO The code below can probably be reused for PlaySafeCard
+
         last_played_red = sum(self._obs_playing_red_vector)
         last_played_yellow = sum(self._obs_playing_yellow_vector)
         last_played_green = sum(self._obs_playing_green_vector)
@@ -145,9 +147,9 @@ class Rule:
             blue_vector = i[20:25]
             vectors = [red_vector, yellow_vector, green_vector, white_vector, blue_vector]
 
-            for i in range(5):
-                # get the index of the first bit set to one in the vectors
-                index = vectors[i].index(1)
+            for i, vector in enumerate(vectors):
+                # get the index of the first bit set to one in the vector
+                index = vector.index(1)
                 current_last_played = last_played[i]
 
                 if index == current_last_played:
