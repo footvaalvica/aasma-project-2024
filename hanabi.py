@@ -18,7 +18,6 @@ for agent in env.agent_iter():
         obs = observation["observation"]
         # this is where you would insert your policy
 
-
         print("obs size", len(obs))
 
         print("this players first card info", obs[308:333])
@@ -27,8 +26,8 @@ for agent in env.agent_iter():
 
         print("revealed rank", obs[338:343])
 
-        policy = Policy(env, agent, mask, obs)
-        action = policy.legal_random()
+        policy = LegalRandom(env, agent, mask, obs)
+        action = policy.run()
 
     env.step(action)
 env.close()
