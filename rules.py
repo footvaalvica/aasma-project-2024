@@ -126,19 +126,38 @@ class Rule:
         # we can return now if the playmask is all 0
         if sum(self._play_mask) == 0:
             return None
-        
-        # this code checks if the card is safe to play if we are certain about it
-        # TODO @tiago pls check not sure if correct
 
         last_played_red = sum(self._obs_playing_red_vector)
         last_played_yellow = sum(self._obs_playing_yellow_vector)
         last_played_green = sum(self._obs_playing_green_vector)
         last_played_blue = sum(self._obs_playing_blue_vector)
         last_played_white = sum(self._obs_playing_white_vector)
+        last_played = [last_played_red, last_played_yellow, last_played_green, last_played_white, last_played_blue]
 
-        # if the card is certain, we can check if it is safe to play
-        # a card is safe to play
-        return None
+        # remove all cards from the mask
+        self._play_mask = [0, 0, 0, 0, 0]
+
+        for i in self._cards:
+            red_vector = i[0:5]
+            yellow_vector = i[5:10]
+            green_vector = i[10:15]
+            white_vector = i[15:20]
+            blue_vector = i[20:25]
+            vectors = [red_vector, yellow_vector, green_vector, white_vector, blue_vector]
+
+            for i in range(5):
+                # get the index of the first bit set to one in the vectors
+                index = vectors[i].index(1)
+                current_last_played = last_played[i]
+
+                if index == current_last_played:
+                    # the card is the next card in the firework
+                    # we can play it
+                    self._play_mask[i] = 1
+        
+        action = self._env.action_space(self._agent).sample(self._play_mask)
+        self._update_card_age(action)
+        return action
 
     def discard_oldest_first(self, env, agent, mask, obs):
         self._update_all(env, agent, mask, obs)
