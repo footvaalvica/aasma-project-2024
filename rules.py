@@ -97,6 +97,8 @@ class Rule:
     def play_safe_card(self, env, agent, mask, obs):
         # go read down below, probably somethings are already done in PlayIfCertain
         self._update_all(env, agent, mask, obs)
+
+        # besides looking at possible cards on hand, it should also look at cards that have been discarded in only to narrow down options
         pass
 
     # TODO #2 OsawaDiscard
