@@ -93,12 +93,13 @@ class Rule:
         self.card_age = [0, 0, 0, 0, 0]
         self._update_all(env, agent, mask, obs)
 
-    # TODO PlaySafeCard
+    # TODO #1 PlaySafeCard
     def play_safe_card(self, env, agent, mask, obs):
+        # go read down below, probably somethings are already done in PlayIfCertain
         self._update_all(env, agent, mask, obs)
         pass
 
-    # TODO OsawaDiscard
+    # TODO #2 OsawaDiscard
     def osawa_discard(self, env, agent, mask, obs):
         self._update_all(env, agent, mask, obs)
         pass
@@ -175,12 +176,12 @@ class Rule:
         self._update_card_age(action)
         return action
 
-    # TODO PlayProbablySafeCard(𝑇ℎ𝑟𝑒𝑠ℎ𝑜𝑙𝑑 ∈ [0, 1]) @Tiago
+    # TODO #3 PlayProbablySafeCard(𝑇ℎ𝑟𝑒𝑠ℎ𝑜𝑙𝑑 ∈ [0, 1])
     def play_probably_safe_card(self, env, agent, mask, obs, threshold):
         self._update_all(env, agent, mask, obs)
         pass
 
-    # TODO TellAnyoneAboutUsefulCard
+    # TODO #4 TellAnyoneAboutUsefulCard
     def tell_anyone_about_useful_card(self, env, agent, mask, obs):
         self._update_all(env, agent, mask, obs)
         pass

@@ -8,6 +8,7 @@ class Policy:
     def __init__(self, env, agent, mask, obs):
         self.rule = Rule(env, agent, mask, obs)
 
+# TODO #6 MCTS Policy
 class MCTS(Policy):
     def __init__(self, env, agent, mask, obs, depth, policy):
         super().__init__(env, agent, mask, obs)
@@ -58,7 +59,7 @@ class MCTS_LegalRandom(MCTS):
         # call the super class run method
         super().run()
 
-# TODO
+# TODO #9 Flawed
 class Flawed(Policy):
     def __init__(self, env, agent, mask, obs):
         super().__init__(env, agent, mask, obs)
@@ -73,7 +74,7 @@ class LegalRandom(Policy):
     def run(self):
         return self.rule.env.action_space(self.rule.agent).sample(self.rule.mask)
 
-# TODO
+# TODO #8 Piers 
 class Piers(Policy):
     def __init__(self, env, agent, mask, obs):
         super().__init__(env, agent, mask, obs)
@@ -81,7 +82,7 @@ class Piers(Policy):
     def run(self):
         pass  # Implement Piers policy here
 
-# TODO
+# TODO #7 IGGI
 class IGGI(Policy):
     def __init__(self, env, agent, mask, obs):
         super().__init__(env, agent, mask, obs)
@@ -89,6 +90,6 @@ class IGGI(Policy):
     def run(self):
         pass  # Implement IGGI policy here
 
-# TODO
+# TODO #5 PredictorIS-MCTS Policy is missing
 class PredictorISMCTS:
     pass
