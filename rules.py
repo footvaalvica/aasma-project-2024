@@ -48,8 +48,11 @@ class Rule:
             self._obs_playing_red_vector = obs[175:180]
             self._obs_playing_yellow_vector = obs[180:185]
             self._obs_playing_green_vector = obs[185:190]
-            self._obs_playing_blue_vector = obs[190:195]
-            self._obs_playing_white_vector = obs[195:200]
+            self._obs_playing_white_vector = obs[190:195]
+            self._obs_playing_blue_vector = obs[195:200]
+            self._firework_info = [self._obs_playing_red_vector, self._obs_playing_yellow_vector, self._obs_playing_green_vector,
+                         self._obs_playing_white_vector, self._obs_playing_blue_vector]
+            
             self._obs_remaining_info_tokens = obs[200:208]
             self._obs_remaining_life_tokens = obs[208:211]
             self._obs_discard_thermometer_encoding = obs[211:261]
@@ -67,13 +70,15 @@ class Rule:
             self._obs_player_third_card = obs[378:413]
             self._obs_player_fourth_card = obs[413:448]
             self._obs_player_fifth_card = obs[448:483]
+            self._cards = [self._obs_player_first_card, self._obs_player_second_card, self._obs_player_third_card, 
+                           self._obs_player_fourth_card, self._obs_player_fifth_card]
             # Revealed Info of Other Player’s Xth Card
             self._obs_other_first_card = obs[483:518]
             self._obs_other_second_card = obs[518:553]
             self._obs_other_third_card = obs[553:588]
             self._obs_other_fourth_card = obs[588:623]
             self._obs_other_fifth_card = obs[663:657]
-            self._cards = [self._obs_player_first_card, self._obs_player_second_card, self._obs_player_third_card, self._obs_player_fourth_card, self._obs_player_fifth_card]
+            
 
         def _update_mask(mask):
             self._discard_mask = mask[0:5]
@@ -104,7 +109,35 @@ class Rule:
     # TODO #2 OsawaDiscard
     def osawa_discard(self, env, agent, mask, obs):
         self._update_all(env, agent, mask, obs)
-        pass
+
+        for card, index in zip(self._cards, [0,1,2,3,4]):
+            color_info = card[25:30]
+            rank_info = card[30:35]
+            max_rank = len(rank_info) - rank_info[::-1].index(1) - 1 # gets highest 1 from the rank_info list
+            # let's use the color and rank info first because it's more efficient if it has any info useful for discarding
+            for color, firework in zip(color_info, self._firework_info):
+                if color == 0:
+                    continue
+                max_firework_rank = firework.index(0) - 1
+                if max_rank <= max_firework_rank:
+                    # discard that card
+                    if self._discard_mask[index] == 1:
+                        return index
+            
+            # now let's use the information gathered from the first 25 bits of each card info
+            card_infos = [card[0:5], card[5:10], card[10:15], card[15:20], card[20:25]]
+            for card_info, firework in zip(card_infos, self._firework_info):
+                if 1 not in card_info:
+                    continue
+                max_rank = len(card_info) - card_info[::-1].index(1) - 1
+                max_firework_rank = firework.index(0) - 1
+                if max_rank <= max_firework_rank:
+                    # discard that card
+                    if self._discard_mask[index] == 1:
+                        return index
+
+        # if it passes to this stage, then we can't discard any card
+        return
 
     # TellRandomly
     def tell_random(self, env, agent, mask, obs):
