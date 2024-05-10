@@ -19,6 +19,7 @@ class MCTS(Policy):
     
     class Node:
         def __init__(self, action, state, parent=None):
+            self.state = state # TODO use this when choosing a move
             self.action = action
             self.parent = parent
             self.children = []
