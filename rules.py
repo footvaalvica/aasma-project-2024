@@ -114,30 +114,42 @@ class Rule:
             color_info = card[25:30]
             rank_info = card[30:35]
             max_rank = len(rank_info) - rank_info[::-1].index(1) - 1 # gets highest 1 from the rank_info list
+
             # let's use the color and rank info first because it's more efficient if it has any info useful for discarding
+            discard = True # flag to know whether to discard or not
             for color, firework in zip(color_info, self._firework_info):
                 if color == 0:
                     continue
                 max_firework_rank = firework.index(0) - 1
-                if max_rank <= max_firework_rank:
-                    # discard that card
-                    if self._discard_mask[index] == 1:
+                if max_rank > max_firework_rank:
+                    # can't discard if max rank is higher than the current firework rank
+                    discard = False
+                    break
+                    
+            if discard == True:
+                if self._discard_mask[index] == 1:
                         return index
             
             # now let's use the information gathered from the first 25 bits of each card info
+            # not sure if using both infos is a redundancy
+            discard = True
             card_infos = [card[0:5], card[5:10], card[10:15], card[15:20], card[20:25]]
             for card_info, firework in zip(card_infos, self._firework_info):
                 if 1 not in card_info:
                     continue
                 max_rank = len(card_info) - card_info[::-1].index(1) - 1
                 max_firework_rank = firework.index(0) - 1
-                if max_rank <= max_firework_rank:
+                if max_rank > max_firework_rank:
                     # discard that card
-                    if self._discard_mask[index] == 1:
+                    discard = False
+                    break
+                    
+            if discard == True:
+                if self._discard_mask[index] == 1:
                         return index
 
         # if it passes to this stage, then we can't discard any card
-        return
+        return -1
 
     # TellRandomly
     def tell_random(self, env, agent, mask, obs):
