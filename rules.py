@@ -105,13 +105,44 @@ class Rule:
         self.card_age = [0, 0, 0, 0, 0]
         self._update_all(env, agent, mask, obs)
 
+    # PlayProbablySafeCard(𝑇ℎ𝑟𝑒𝑠ℎ𝑜𝑙𝑑 ∈ [0, 1]) - goes through every possible action and defines a ration 
+    # (safe actions/safe + unsafe actions), if the ration is above the threshold for any card, plays that card
+    def play_probably_safe_card(self, env, agent, mask, obs, threshold):
+        self._update_all(env, agent, mask, obs)
+        probabilities = [0.0, 0.0, 0.0, 0.0, 0.0]
+        
+        for card, index in zip(self._cards, [0,1,2,3,4]):
+            safe_plays = 0
+            unsafe_plays = 0
+            color_infos = [card[0:5], card[5:10], card[10:15], card[15:20], card[20:25]]
+            for color_info, firework in zip(color_infos, self._firework_info):
+                max_firework_rank = firework.index(0) - 1
+                # next, searches every possible play and evaluates if it is safe or unsafe
+                # it's only safe if the index of the play equals the max_firework_rank + 1 (next card in line)
+                for play, play_index in zip(color_info, [0,1,2,3,4]):
+                    if play == 0:
+                        continue
+                    if play_index <= max_firework_rank or play_index > max_firework_rank + 1:
+                        unsafe_plays += 1
+                    else:
+                        safe_plays += 1
+                probabilities[index] = safe_plays / (safe_plays + unsafe_plays)
+
+        highest_prob = max(probabilities)
+
+        if highest_prob >= threshold:
+            for prob, prob_index in zip(probabilities, [0,1,2,3,4]):
+                if prob == highest_prob:
+                    return prob_index + 5 # the action_space index for the play action
+        else:
+            return -1 # no probability is higher than the threshold
+
     # TODO #1 PlaySafeCard
     def play_safe_card(self, env, agent, mask, obs):
         # go read down below, probably somethings are already done in PlayIfCertain
-        self._update_all(env, agent, mask, obs)
+        return self.play_probably_safe_card(env, agent, mask, obs, 1)
 
         # besides looking at possible cards on hand, it should also look at cards that have been discarded in only to narrow down options
-        pass
 
     # OsawaDiscard - if a card is safe to discard (meaning that in no way can that card be played in the future), discards that card
     def osawa_discard(self, env, agent, mask, obs):
@@ -242,39 +273,6 @@ class Rule:
         self._update_card_age(action)
         return action
 
-    # PlayProbablySafeCard(𝑇ℎ𝑟𝑒𝑠ℎ𝑜𝑙𝑑 ∈ [0, 1]) - goes through every possible action and defines a ration 
-    # (safe actions/safe + unsafe actions), if the ration is above the threshold for any card, plays that card
-    def play_probably_safe_card(self, env, agent, mask, obs, threshold):
-        self._update_all(env, agent, mask, obs)
-        probabilities = [0.0, 0.0, 0.0, 0.0, 0.0]
-        
-        for card, index in zip(self._cards, [0,1,2,3,4]):
-            safe_plays = 0
-            unsafe_plays = 0
-            color_infos = [card[0:5], card[5:10], card[10:15], card[15:20], card[20:25]]
-            for color_info, firework in zip(color_infos, self._firework_info):
-                max_firework_rank = firework.index(0) - 1
-                # next, searches every possible play and evaluates if it is safe or unsafe
-                # it's only safe if the index of the play equals the max_firework_rank + 1 (next card in line)
-                for play, play_index in zip(color_info, [0,1,2,3,4]):
-                    if play == 0:
-                        continue
-                    if play_index <= max_firework_rank or play_index > max_firework_rank + 1:
-                        unsafe_plays += 1
-                    else:
-                        safe_plays += 1
-                probabilities[index] = safe_plays / (safe_plays + unsafe_plays)
-
-        highest_prob = max(probabilities)
-
-        if highest_prob >= threshold:
-            for prob, prob_index in zip(probabilities, [0,1,2,3,4]):
-                if prob == highest_prob:
-                    return prob_index + 5 # the action_space index for the play action
-        else:
-            return -1 # no probability is higher than the threshold
-
-    # TODO #4 TellAnyoneAboutUsefulCard
     def tell_anyone_about_useful_card(self, env, agent, mask, obs):
         self._update_all(env, agent, mask, obs)
 
@@ -287,7 +285,5 @@ class Rule:
                 # check if the tell mask allows for a tell action
                 if self._tell_mask[index] == 1:
                     return index + 10
-                
-
         return -1
     
