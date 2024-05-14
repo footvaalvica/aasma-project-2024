@@ -85,6 +85,7 @@ class Rule:
             self._obs_other_fifth_card = obs[663:657]
             self._other_cards = [self._obs_other_first_card, self._obs_other_second_card, self._obs_other_third_card, 
                                  self._obs_other_fourth_card, self._obs_other_fifth_card]
+
             
         def _update_mask(mask):
             self._mask = mask
@@ -104,6 +105,9 @@ class Rule:
     def __init__(self, env, agent, mask, obs):
         self.card_age = [0, 0, 0, 0, 0]
         self._update_all(env, agent, mask, obs)
+    
+    def get_mask(self):
+        return self._mask
 
     # PlayProbablySafeCard(𝑇ℎ𝑟𝑒𝑠ℎ𝑜𝑙𝑑 ∈ [0, 1]) - goes through every possible action and defines a ration 
     # (safe actions/safe + unsafe actions), if the ration is above the threshold for any card, plays that card
