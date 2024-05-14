@@ -54,7 +54,13 @@ class Rule:
             
             self._obs_remaining_info_tokens = obs[200:208]
             self._obs_remaining_life_tokens = obs[208:211]
-            self._obs_discard_thermometer_encoding = obs[211:261]
+            self._obs_discard_encoding_red = obs[211:221]
+            self._obs_discard_encoding_yellow = obs[221:231]
+            self._obs_discard_encoding_green = obs[231:241]
+            self._obs_discard_encoding_white = obs[241:251]
+            self._obs_discard_encoding_blue = obs[251:261]
+            self._obs_discarded_cards = [self._obs_discard_encoding_red, self._obs_discard_encoding_yellow, self._obs_discard_encoding_green,
+                                        self._obs_discard_encoding_white, self._obs_discard_encoding_blue]
             # Revealed Info of This Player’s Xth Card
             self._obs_previous_player_id = obs[261:263]
             self._obs_previous_player_action_type = obs[263:267]
@@ -151,8 +157,14 @@ class Rule:
                         self._update_card_age(index)
                         return index
 
-        # also needs to look at the thermometer encoded pile of cards discarded
-
+            # also needs to look at the thermometer encoded pile of cards discarded
+            
+            #for color_info, discarded_cards in zip(color_infos, self._obs_discarded_cards)
+                #rank_1_infos = discarded_cards[0:4]
+                #rank_2_infos = discarded_cards[0:4]
+                #rank_3_infos = discarded_cards[0:4]
+                #rank_4_infos = discarded_cards[0:4]
+                #rank_5_infos = discarded_cards[0:4]
 
 
         # if it passes to this stage, then we can't discard any card

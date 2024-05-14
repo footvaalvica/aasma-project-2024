@@ -122,6 +122,16 @@ class Flawed(Policy):
     def run(self):
         pass  # Implement the flawed policy here
 
+class PlayerInput(Policy):
+    def __init__(self, env, agent, mask, obs):
+        super().__init__(env, agent, mask, obs)
+
+    def run(self):
+        # print the legal action mask of the agent
+        print(self.rule._mask)
+        print("please go check the documentation to see what it means")
+        return int(input("Enter your move: "))
+
 class LegalRandom(Policy):
     def __init__(self, env, agent, mask, obs):
         super().__init__(env, agent, mask, obs)
