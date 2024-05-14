@@ -191,7 +191,6 @@ class Piers(Policy):
     def run(self):
         pass
 
-# TODO #7 IGGI
 class IGGI(Policy):
     def __init__(self, env, agent, mask, obs):
         super().__init__(env, agent, mask, obs)
