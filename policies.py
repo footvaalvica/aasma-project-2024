@@ -141,13 +141,30 @@ class MCS_LegalRandom(MCTS):
         # call the super class run method
         super().run()
 
-# TODO #9 Flawed
 class Flawed(Policy):
     def __init__(self, env, agent, mask, obs):
         super().__init__(env, agent, mask, obs)
 
     def run(self):
-        pass  # Implement the flawed policy here
+        # it first tries PlaySafeCard, PlayProbablySafeCard(0.25), TellRandomly, OsawaDiscard, then DiscardOldestFirst, then DiscardRandomly
+        if self.rule.play_safe_card() is not None:
+            print("I am playing safe card")
+            return self.rule.play_safe_card()
+        elif self.rule.play_probably_safe_card(0.25) is not None:
+            print("I am playing probably safe card with a probability of 0.25")
+            return self.rule.play_probably_safe_card(0.25)
+        elif self.rule.tell_randomly() is not None:
+            print("I am telling randomly")
+            return self.rule.tell_randomly()
+        elif self.rule.osawa_discard() is not None:
+            print("I am osawa discarding")
+            return self.rule.osawa_discard()
+        elif self.rule.discard_oldest_first() is not None:
+            print("I am discarding oldest first")
+            return self.rule.discard_oldest_first()
+        else:
+            print("I am discarding randomly")
+            return self.rule.discard_randomly()
 
 class PlayerInput(Policy):
     def __init__(self, env, agent, mask, obs):
@@ -172,7 +189,7 @@ class Piers(Policy):
         super().__init__(env, agent, mask, obs)
 
     def run(self):
-        pass  # Implement Piers policy here
+        pass
 
 # TODO #7 IGGI
 class IGGI(Policy):
@@ -180,7 +197,23 @@ class IGGI(Policy):
         super().__init__(env, agent, mask, obs)
 
     def run(self):
-        pass  # Implement IGGI policy here
+        # it first tries PlayIfCertain, then PlaySafeCard, then TellAnyoneAboutUsefulCard, then OsawaDiscard, then DiscardOldestFirst
+        if self.rule.play_if_certain() is not None:
+            print("I am playing if certain")
+            return self.rule.play_if_certain()
+        elif self.rule.play_safe_card() is not None:
+            print("I am playing safe card")
+            return self.rule.play_safe_card()
+        elif self.rule.tell_anyone_about_useful_card() is not None:
+            print("I am telling anyone about useful card")
+            return self.rule.tell_anyone_about_useful_card()
+        elif self.rule.osawa_discard() is not None:
+            print("I am osawa discarding")
+            return self.rule.osawa_discard()
+        else:
+            print("I am discarding oldest first")
+            return self.rule.discard_oldest_first()
+       
 
 # TODO #5 PredictorIS-MCTS Policy is missing
 class PredictorISMCTS:
