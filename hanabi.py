@@ -7,6 +7,7 @@ env = hanabi_v5.env(colors=5, ranks=5, players=2, hand_size=5, max_information_t
 env.reset(seed=42)
 
 for agent in env.agent_iter():
+
     observation, reward, termination, truncation, info = env.last()
 
     if termination or truncation:
@@ -19,6 +20,8 @@ for agent in env.agent_iter():
         # this is where you would insert your policy
 
         print("obs size", len(obs))
+
+        print("thermometer dsicard pile", obs[211:260])
 
         print("this players first card info", obs[308:333])
         

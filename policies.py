@@ -126,7 +126,7 @@ class LegalRandom(Policy):
         super().__init__(env, agent, mask, obs)
 
     def run(self):
-        return self.rule.env.action_space(self.rule.agent).sample(self.rule.mask)
+        return self.rule._env.action_space(self.rule._agent).sample(self.rule._mask)
 
 # TODO #8 Piers 
 class Piers(Policy):

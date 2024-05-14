@@ -17,8 +17,6 @@ class Rule:
             self._play_mask[4] = 0
 
     def _update_card_age(self, action: int):
-        self._card_age = [0, 0, 0, 0, 0] #TODO: is this supposed to be here? doesn't it init card age every time
-
         # increment all elements by 1
         self._card_age = [x + 1 for x in self._card_age]
 
@@ -36,6 +34,7 @@ class Rule:
         
     def _update_all(self, env, agent, mask, obs):
         def _update_obs(obs):
+            
             # Vector of Card X in other player’s hand
             self._obs_hand_other_ones = obs[0:25]
             self._obs_hand_other_twos = obs[25:50]
@@ -78,9 +77,11 @@ class Rule:
             self._obs_other_third_card = obs[553:588]
             self._obs_other_fourth_card = obs[588:623]
             self._obs_other_fifth_card = obs[663:657]
+            self._other_cards = [self._obs_other_first_card, self._obs_other_second_card, self._obs_other_third_card, 
+                                 self._obs_other_fourth_card, self._obs_other_fifth_card]
             
-
         def _update_mask(mask):
+            self._mask = mask
             self._discard_mask = mask[0:5]
             self._play_mask = mask[5:10]
             self._tell_mask = mask[10:20]
@@ -149,6 +150,10 @@ class Rule:
                 if self._discard_mask[index] == 1:
                         self._update_card_age(index)
                         return index
+
+        # also needs to look at the thermometer encoded pile of cards discarded
+
+
 
         # if it passes to this stage, then we can't discard any card
         return -1
@@ -227,7 +232,6 @@ class Rule:
 
     # PlayProbablySafeCard(𝑇ℎ𝑟𝑒𝑠ℎ𝑜𝑙𝑑 ∈ [0, 1]) - goes through every possible action and defines a ration 
     # (safe actions/safe + unsafe actions), if the ration is above the threshold for any card, plays that card
-
     def play_probably_safe_card(self, env, agent, mask, obs, threshold):
         self._update_all(env, agent, mask, obs)
         probabilities = [0.0, 0.0, 0.0, 0.0, 0.0]
@@ -261,4 +265,17 @@ class Rule:
     # TODO #4 TellAnyoneAboutUsefulCard
     def tell_anyone_about_useful_card(self, env, agent, mask, obs):
         self._update_all(env, agent, mask, obs)
-        pass
+
+        # go through all the cards and check if any of them can be told
+        for card, index in zip(self._cards, [0,1,2,3,4]):
+            color_info = card[0:5]
+            rank_info = card[5:10]
+            # if there is a color or rank that is not known
+            if 1 not in color_info or 1 not in rank_info:
+                # check if the tell mask allows for a tell action
+                if self._tell_mask[index] == 1:
+                    return index + 10
+                
+
+        return -1
+    
