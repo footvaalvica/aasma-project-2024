@@ -103,7 +103,7 @@ class MCTS(Policy):
                             action = self.policy.run()
                             self.policy.rule._env.step(action)
                         else:
-                            node = selection(node)
+                            node = _selection(node)
                             cur_depth -= 1
                 # return the value of the agent at the end of the simulation (time ran out, get rewards)
                 return self.policy.rule._env.value(self.policy.rule._agent)
