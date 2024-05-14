@@ -190,12 +190,26 @@ class Rule:
 
             # also needs to look at the thermometer encoded pile of cards discarded
             
-            #for color_info, discarded_cards in zip(color_infos, self._obs_discarded_cards)
-                #rank_1_infos = discarded_cards[0:4]
-                #rank_2_infos = discarded_cards[0:4]
-                #rank_3_infos = discarded_cards[0:4]
-                #rank_4_infos = discarded_cards[0:4]
-                #rank_5_infos = discarded_cards[0:4]
+            for color_info, discarded_cards in zip(color_infos, self._obs_discarded_cards):
+                rank_1_infos = discarded_cards[0:3]
+                rank_2_infos = discarded_cards[3:5]
+                rank_3_infos = discarded_cards[5:7]
+                rank_4_infos = discarded_cards[7:9]
+                rank_5_infos = discarded_cards[9]
+                discard_rank_infos = [rank_1_infos, rank_2_infos, rank_3_infos,
+                                      rank_4_infos, rank_5_infos]
+                max_possible_rank = len(color_info) - color_info[::-1].index(1) - 1 # gets highest 1 from the color_info list
+
+                discard = False
+                for i in range(max_possible_rank, 6):
+                    if 1 in discard_rank_infos[i]:
+                        discard = True
+                        break
+
+                if discard == True:
+                    if self._discard_mask[index] == 1:
+                        self._update_card_age(index)
+                        return index
 
 
         # if it passes to this stage, then we can't discard any card
