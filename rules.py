@@ -267,7 +267,7 @@ class Rule:
         self._update_all(env, agent, mask, obs)
 
         # go through all the cards and check if any of them can be told
-        for card, index in zip(self._cards, [0,1,2,3,4]):
+        for card, index in zip(self._other_cards, [0,1,2,3,4]):
             color_info = card[0:5]
             rank_info = card[5:10]
             # if there is a color or rank that is not known
