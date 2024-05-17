@@ -189,7 +189,34 @@ class Piers(Policy):
         super().__init__(env, agent, mask, obs)
 
     def run(self):
-        pass
+        if sum(self.rule._obs_remaining_life_tokens) > 1 and sum(self.rule._obs_unary_remaining_deck)\
+        and self.rule.play_probably_safe_card(0.0) is not None:
+            print("I am playing probabuly safe card (0.0)")
+            return self.rule.play_probably_safe_card(0.0)
+        elif self.rule.play_safe_card() is not None:
+            print("I am playing safe card")
+            return self.rule.play_safe_card()
+        elif sum(self.rule._obs_remaining_life_tokens) > 1 and self.rule.play_probably_safe_card(0.6) is not None:
+            print("I am playing probabuly safe card (0.6)")
+            return self.rule.play_probably_safe_card(0.6)
+        elif self.rule.tell_anyone_about_useful_card() is not None:
+            print("I am telling anyone about useful card")
+            return self.rule.tell_anyone_about_useful_card()
+        elif sum(self.rule._obs_remaining_info_tokens) < 4: # and self.rule.tell_dispensable() is not None
+            print("I am telling next player about dispensable card")
+            # implement this rule
+        elif self.rule.osawa_discard() is not None:
+            print("I am osawa discarding")
+            return self.rule.osawa_discard()
+        elif self.rule.discard_oldest_first() is not None:
+            print("I am discarding older first")
+            return self.rule.discard_oldest_first()
+        elif self.rule.tell_random() is not None:
+            print("I am telling randomly")
+            return self.rule.tell_random()
+        else:
+            print("I am discarding randomly")
+            return self.rule.discard_random()
 
 class IGGI(Policy):
     def __init__(self, env, agent, mask, obs):

@@ -139,7 +139,7 @@ class Rule:
                 if prob == highest_prob:
                     return prob_index + 5 # the action_space index for the play action
         else:
-            return -1 # no probability is higher than the threshold
+            return None # no probability is higher than the threshold
 
     # TODO #1 PlaySafeCard
     def play_safe_card(self, env, agent, mask, obs):
@@ -217,7 +217,7 @@ class Rule:
 
 
         # if it passes to this stage, then we can't discard any card
-        return -1
+        return None
 
     # TellRandomly
     def tell_random(self, env, agent, mask, obs):
