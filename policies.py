@@ -250,9 +250,9 @@ class Piers(Policy):
         elif self.rule.tell_anyone_about_useful_card() is not None:
             print("I am telling anyone about useful card")
             return self.rule.tell_anyone_about_useful_card()
-        elif sum(self.rule._obs_remaining_info_tokens) < 4: # and self.rule.tell_dispensable() is not None
+        elif sum(self.rule._obs_remaining_info_tokens) < 4  and self.rule.tell_dispensable() is not None:
             print("I am telling next player about dispensable card")
-            # implement this rule
+            return self.rule.tell_dispensable()
         elif self.rule.osawa_discard() is not None:
             print("I am osawa discarding")
             return self.rule.osawa_discard()
