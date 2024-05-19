@@ -36,11 +36,13 @@ class Rule:
         def _update_obs(obs):
             
             # Vector of Card X in other player’s hand
-            self._obs_hand_other_ones = obs[0:25]
-            self._obs_hand_other_twos = obs[25:50]
-            self._obs_hand_other_threes = obs[50:75]
-            self._obs_hand_other_fours = obs[75:100]
-            self._obs_hand_other_fives = obs[100:125]
+            self._obs_hand_other_one = obs[0:25]
+            self._obs_hand_other_two = obs[25:50]
+            self._obs_hand_other_three = obs[50:75]
+            self._obs_hand_other_four = obs[75:100]
+            self._obs_hand_other_five = obs[100:125]
+            self._other_cards = [self._obs_hand_other_one, self._obs_hand_other_two, self._obs_hand_other_three,
+                                 self._obs_hand_other_four, self._obs_hand_other_five]
             # Unary encoding of remaning deck size
             self._obs_unary_remaining_deck = obs[125:175]
             # Vector of <Color> Firework
@@ -75,7 +77,7 @@ class Rule:
             self._obs_player_third_card = obs[378:413]
             self._obs_player_fourth_card = obs[413:448]
             self._obs_player_fifth_card = obs[448:483]
-            self._cards = [self._obs_player_first_card, self._obs_player_second_card, self._obs_player_third_card, 
+            self._cards_info = [self._obs_player_first_card, self._obs_player_second_card, self._obs_player_third_card, 
                            self._obs_player_fourth_card, self._obs_player_fifth_card]
             # Revealed Info of Other Player’s Xth Card
             self._obs_other_first_card = obs[483:518]
@@ -83,7 +85,7 @@ class Rule:
             self._obs_other_third_card = obs[553:588]
             self._obs_other_fourth_card = obs[588:623]
             self._obs_other_fifth_card = obs[663:657]
-            self._other_cards = [self._obs_other_first_card, self._obs_other_second_card, self._obs_other_third_card, 
+            self._other_cards_info = [self._obs_other_first_card, self._obs_other_second_card, self._obs_other_third_card, 
                                  self._obs_other_fourth_card, self._obs_other_fifth_card]
 
             
@@ -115,7 +117,7 @@ class Rule:
         self._update_all(env, agent, mask, obs)
         probabilities = [0.0, 0.0, 0.0, 0.0, 0.0]
         
-        for card, index in zip(self._cards, [0,1,2,3,4]):
+        for card, index in zip(self._cards_info, [0,1,2,3,4]):
             safe_plays = 0
             unsafe_plays = 0
             color_infos = [card[0:5], card[5:10], card[10:15], card[15:20], card[20:25]]
@@ -152,72 +154,13 @@ class Rule:
     def osawa_discard(self, env, agent, mask, obs):
         self._update_all(env, agent, mask, obs)
 
-        for card, index in zip(self._cards, [0,1,2,3,4]):
-            color_info = card[25:30]
-            rank_info = card[30:35]
-            max_rank = len(rank_info) - rank_info[::-1].index(1) - 1 # gets highest 1 from the rank_info list
+        discarded_cards = check_discard(self, self._cards_info)
 
-            # let's use the color and rank info first because it's more efficient if it has any info useful for discarding
-            discard = True # flag to know whether to discard or not
-            for color, firework in zip(color_info, self._firework_info):
-                if color == 0:
-                    continue
-                max_firework_rank = firework.index(0) - 1
-                if max_rank > max_firework_rank:
-                    # can't discard if max rank is higher than the current firework rank
-                    discard = False
-                    break
-                    
-            if discard == True:
-                if self._discard_mask[index] == 1:
-                        self._update_card_age(index)
-                        return index
-            
-            # now let's use the information gathered from the first 25 bits of each card info
-            # not sure if using both infos is a redundancy
-            discard = True
-            color_infos = [card[0:5], card[5:10], card[10:15], card[15:20], card[20:25]]
-            for color_info, firework in zip(color_infos, self._firework_info):
-                if 1 not in color_info:
-                    continue
-                max_rank = len(color_info) - color_info[::-1].index(1) - 1
-                max_firework_rank = firework.index(0) - 1
-                if max_rank > max_firework_rank:
-                    # discard that card
-                    discard = False
-                    break
-                    
-            if discard == True:
-                if self._discard_mask[index] == 1:
-                        self._update_card_age(index)
-                        return index
-
-            # also needs to look at the thermometer encoded pile of cards discarded
-            
-            for color_info, discarded_cards in zip(color_infos, self._obs_discarded_cards):
-                rank_1_infos = discarded_cards[0:3]
-                rank_2_infos = discarded_cards[3:5]
-                rank_3_infos = discarded_cards[5:7]
-                rank_4_infos = discarded_cards[7:9]
-                rank_5_infos = discarded_cards[9]
-                discard_rank_infos = [rank_1_infos, rank_2_infos, rank_3_infos,
-                                      rank_4_infos, rank_5_infos]
-                max_possible_rank = len(color_info) - color_info[::-1].index(1) - 1 # gets highest 1 from the color_info list
-
-                discard = False
-                for i in range(max_possible_rank, 6):
-                    if 1 in discard_rank_infos[i]:
-                        discard = True
-                        break
-
-                if discard == True:
-                    if self._discard_mask[index] == 1:
-                        self._update_card_age(index)
-                        return index
-
-
-        # if it passes to this stage, then we can't discard any card
-        return None
+        if discarded_cards is None:
+            return None
+        else:
+            self._update_card_age(discarded_cards[0])
+            return discarded_cards[0]
 
     # TellRandomly
     def tell_random(self, env, agent, mask, obs):
@@ -255,7 +198,7 @@ class Rule:
         # remove all cards from the mask
         self._play_mask = [0, 0, 0, 0, 0]
 
-        for i in self._cards:
+        for i in self._cards_info:
             red_vector = i[0:5]
             yellow_vector = i[5:10]
             green_vector = i[10:15]
@@ -295,7 +238,7 @@ class Rule:
         self._update_all(env, agent, mask, obs)
 
         # go through all the cards and check if any of them can be told
-        for card, index in zip(self._other_cards, [0,1,2,3,4]):
+        for card, index in zip(self._other_cards_info, [0,1,2,3,4]):
             color_info = card[0:5]
             rank_info = card[5:10]
             # if there is a color or rank that is not known
@@ -303,5 +246,88 @@ class Rule:
                 # check if the tell mask allows for a tell action
                 if self._tell_mask[index] == 1:
                     return index + 10
-        return -1
+        return None
+    
+    def tell_dispensable(self, env, agent, mask, obs):
+        self._update_all(env, agent, mask, obs)
+
+        discarded_cards = check_discard(self, self._other_cards)
+        indexes = []
+
+        if discarded_cards is None:
+            return None
+        else:
+            for discarded_card in discarded_cards:
+                other_card = self._other_cards[discarded_card]
+                for color in range(5):
+                    for rank in range(5):
+                        if other_card[color*5 + rank] == 1:
+                            indexes = [color, rank]
+
+                color_info = self._other_cards_info[discarded_card][25:30]
+                rank_info = self._other_cards_info[discarded_card][30:35]
+                if color_info.count(1) == 1 and rank_info.count(1) != 1:
+                    if self._discard_mask[indexes[1] + 15] == 1:
+                        return indexes[1] + 15
+                if color_info.count(1) != 1 and rank_info.count(1) == 1:
+                    if self._discard_mask[indexes[0] + 10] == 1:
+                        return indexes[0] + 10
+                    
+        return None
+                
+# auxiliary functions not inside class Rule
+
+# go through a set of cards and checks in any of them can be discarded
+
+def check_discard(rule, cards):
+
+    possible_discards = []
+
+    for card, index in zip(cards, [0,1,2,3,4]):
+        # let's use the information gathered from the first 25 bits of each card info
+        discard = True
+        color_infos = [card[0:5], card[5:10], card[10:15], card[15:20], card[20:25]]
+        for color_info, firework in zip(color_infos, rule._firework_info):
+            if 1 not in color_info:
+                continue
+            max_rank = len(color_info) - color_info[::-1].index(1) - 1
+            max_firework_rank = firework.index(0) - 1
+            if max_rank > max_firework_rank:
+                # can't discard if max rank is higher than the current firework rank
+                discard = False
+                break
+                
+        if discard == True:
+            if rule._discard_mask[index] == 1:
+                    possible_discards.append(index)
+                    break
+
+        # also needs to look at the thermometer encoded pile of cards discarded
+        
+        for color_info, discarded_cards in zip(color_infos, rule._obs_discarded_cards):
+            rank_1_infos = discarded_cards[0:3]
+            rank_2_infos = discarded_cards[3:5]
+            rank_3_infos = discarded_cards[5:7]
+            rank_4_infos = discarded_cards[7:9]
+            rank_5_infos = discarded_cards[9]
+            discard_rank_infos = [rank_1_infos, rank_2_infos, rank_3_infos,
+                                    rank_4_infos, rank_5_infos]
+            max_possible_rank = len(color_info) - color_info[::-1].index(1) - 1 # gets highest 1 from the color_info list
+
+            discard = False
+            for i in range(max_possible_rank, 6):
+                if 1 in discard_rank_infos[i]:
+                    discard = True
+                    break
+
+            if discard == True:
+                if rule._discard_mask[index] == 1:
+                    possible_discards.append(index)
+                    break
+
+    # if there are no discarded cards return None
+    if len(discarded_cards) > 0:
+        return discarded_cards
+    return None
+    
     
