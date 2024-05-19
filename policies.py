@@ -8,17 +8,17 @@ from math import sqrt
 from copy import deepcopy, copy
 import time
 
-def copy_env(seed, env):
-    # print("     Copying environment")
+def copy_env(env):
     hist = env.action_history
-    new_env = make_env(colors=5, ranks=5, players=2, hand_size=5, max_information_tokens=8, max_life_tokens=3, observation_type='card_knowledge', render_mode=None, action_history=copy(hist))
-    new_env.reset(seed)
+    new_env = EnvWrapper(colors=5, ranks=5, players=2, hand_size=5, max_information_tokens=8, max_life_tokens=3, observation_type='card_knowledge', render_mode=None)
+    new_env.reset(env.seed)
     actionCount = 0
     for agent in new_env.agent_iter():
         new_env.step(hist[actionCount])
         actionCount += 1
         if actionCount >= len(hist):
             break
+    new_env.action_history = copy(hist)
     return new_env
 
 class Policy:
@@ -29,12 +29,11 @@ class Policy:
         self.rule._update_all(env, agent, mask, obs)
 
 class MCTS(Policy):
-    def __init__(self, env, agent, mask, obs, depth, policy, timelimit, seed):
+    def __init__(self, env, agent, mask, obs, depth, policy, timelimit):
         super().__init__(env, agent, mask, obs)
         self.depth = depth
         self.policy = policy
         self.timelimit = timelimit
-        self.seed = seed
         self.MAX_SIMULATIONS = 600
     
     class Node:
@@ -89,7 +88,7 @@ class MCTS(Policy):
             def _expansion(node):
                 # Set the environment to the state of the node
                 # print("     Expanding for action", node.action, " with history of length", len(node.state.action_history), " for agent", node.state.agent_selection)
-                self.policy.rule._env = copy_env(self.seed, node.state)
+                self.policy.rule._env = copy_env(node.state)
                 self.policy.rule._env.step(node.action)
                 self.policy.rule._env.action_history.append(node.action)
                 # --------------------------------------------
@@ -101,18 +100,8 @@ class MCTS(Policy):
                 # If leaf node, create children nodes that can later be selected from (explored)
                 if node.is_leaf():
                     node.children = [self.Node(action, self.policy.rule._env, node) for action in range(self.policy.rule._env.action_space(self.policy.rule._env.agent_selection).n) if mask[action]]
+                    self.policy.rule._env = copy_env(self.policy.rule._env) # Don't mess with children states during simulation
                 
-                # DEBUG check if any children will commit illegal action
-                # print("CHECK CHILDREN")
-                #for node in node.children:
-                #    # check if any children will commit illegal action
-                #    state = copy_env(self.seed, node.state)
-                #    observa, reward, termination, truncation, info = state.last()
-                #    mask = observa["action_mask"]
-                #    if mask[node.action] == 0:
-                #        print("Illegal action detected, child with action", node.action, "on mask", mask, "for agent", state.agent_selection)
-                #        print("action history of this child", state.action_history)
-                #        exit(0)
             _expansion(chosen_node)
             # print("Finish Expansion")
 
@@ -137,6 +126,7 @@ class MCTS(Policy):
 
                             action = self.policy.run()
                             self.policy.rule._env.step(action)
+                            # Don't need to alter action history as this wont ever be copied
                             cur_depth -= 1
                         else:
                             # print("Unexpected non-leaf node during simulation, \
@@ -179,11 +169,11 @@ class MCTS(Policy):
         return best.action
 
 class MCS_LegalRandom(MCTS):
-    def __init__(self, env, agent, mask, obs, seed):
+    def __init__(self, env, agent, mask, obs):
         depth = 1
         timelimit = 1 # seconds
         policy = LegalRandom(env, agent, mask, obs)
-        super().__init__(env, agent, mask, obs, depth, policy, timelimit, seed)
+        super().__init__(env, agent, mask, obs, depth, policy, timelimit)
 
     def run(self):
         # call the super class run method
