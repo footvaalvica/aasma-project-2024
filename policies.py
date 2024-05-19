@@ -4,15 +4,14 @@
 from utils import *
 from pettingzoo.classic import hanabi_v5
 from rules import *
-from math import log, sqrt
-from copy import deepcopy
+from math import sqrt
+from copy import deepcopy, copy
 import time
-# import pickle
 
 def copy_env(env):
-    print("     Copying environment")
+    # print("     Copying environment")
     hist = env.action_history
-    new_env = make_env(colors=5, ranks=5, players=2, hand_size=5, max_information_tokens=8, max_life_tokens=3, observation_type='card_knowledge', render_mode=None, action_history=hist)
+    new_env = make_env(colors=5, ranks=5, players=2, hand_size=5, max_information_tokens=8, max_life_tokens=3, observation_type='card_knowledge', render_mode=None, action_history=copy(hist))
     new_env.reset(seed=42)
     actionCount = 0
     for agent in new_env.agent_iter():
@@ -20,8 +19,6 @@ def copy_env(env):
         actionCount += 1
         if actionCount >= len(hist):
             break
-    new_env.render_mode = "human"
-    print("     Done copying environment")
     return new_env
 
 class Policy:
@@ -31,7 +28,6 @@ class Policy:
     def update(self, env, agent, mask, obs): # no env
         self.rule._update_all(env, agent, mask, obs)
 
-# TODO #6 MCTS Policy
 class MCTS(Policy):
     def __init__(self, env, agent, mask, obs, depth, policy, timelimit):
         super().__init__(env, agent, mask, obs)
@@ -42,7 +38,7 @@ class MCTS(Policy):
     class Node:
         def __init__(self, action, state, parent=None):
             self.action = action
-            self.state = state # TODO use this when choosing a move
+            self.state = state
             self.parent = parent
             self.children = []
             self.ni = 0 # number of simulations done for this node
@@ -56,6 +52,7 @@ class MCTS(Policy):
         return MAX if ni == 0 else vi/ni + c*sqrt(n)/ni
 
     def run(self):
+        print("Running MCTS for a maximum of", self.timelimit, "seconds and depth", self.depth, ".")
         # Create a root node
         rootNode = self.Node(None, copy_env(self.rule._env))
         # Get all children nodes (possible actions from current state)
@@ -81,65 +78,81 @@ class MCTS(Policy):
                 if choice.is_leaf():
                     return choice
                 return _selection(choice)
-                # return selection(max(node.children, key=lambda child: child.value + upper_confidence_bound(node.n, child.n, 2)))
             chosen_node = _selection(rootNode)
 
-            print("Do expansion")
+            # print("Do expansion")
             # 2. Expansion
             # Expand the tree (choose that move) for self
             def _expansion(node):
                 # Set the environment to the state of the node
+                # print("     Expanding for action", node.action, " with history of length", len(node.state.action_history), " for agent", node.state.agent_selection)
                 self.policy.rule._env = copy_env(node.state)
                 self.policy.rule._env.step(node.action)
                 self.policy.rule._env.action_history.append(node.action)
+                copy_of_env = copy_env(self.policy.rule._env)
                 # --------------------------------------------
                 observation, reward, termination, truncation, info = self.policy.rule._env.last()
                 mask = observation["action_mask"]
                 obs = observation["observation"]
-                self.policy.update(self.policy.rule._env, self.policy.rule._agent, mask, obs) # keep env and agent
+                self.policy.update(self.policy.rule._env, self.policy.rule._env.agent_selection, mask, obs) # keep env # TODO CHANGE AGENT ??
                 
+                # If leaf node, create children nodes that can later be selected from (explored)
                 if node.is_leaf():
-                    node.children = [self.Node(action, copy_env(self.policy.rule._env), node) for action in range(self.rule._env.action_space(self.rule._agent).n) if mask[action]] # save new child nodes of selected node
+                    node.children = [self.Node(action, copy_env(self.policy.rule._env), node) for action in range(self.policy.rule._env.action_space(self.policy.rule._env.agent_selection).n) if mask[action]]
+                
+                # check if any children will commit illegal action (debug)
+                # print("CHECK CHILDREN")
+                for node in node.children:
+                    # check if any children will commit illegal action
+                    state = copy_env(node.state)
+                    observa, reward, termination, truncation, info = state.last()
+                    mask = observa["action_mask"]
+                    if mask[node.action] == 0:
+                        print("Illegal action detected, child with action", node.action, "on mask", mask, "for agent", state.agent_selection)
+                        print("action history of this child", state.action_history)
+                        exit(0)
             _expansion(chosen_node)
+            # print("Finish Expansion")
 
-            print("Begin simulation")
+            # print("Begin simulation")
             # 3. Simulation
             # Simulate the game until depth level runs out or time expires
             def _simulation(node, depth, timeout):
-                # Create temporary board for simulation (don't wanna tamper node state)
                 cur_depth = depth
                 while time.time() < timeout: 
                     for agent in self.policy.rule._env.agent_iter():
                         observation, reward, termination, truncation, info = self.policy.rule._env.last()
                         # If the game is over, return the value of the game
                         if termination or truncation: # what the fuck is truncation
-                            print("Game is over")
+                            # print("Game is over")
                             return self.policy.rule._env._cumulative_rewards[restoreAgent]
                         # If the game is not over, apply the policy to get the next move
                         # and continue the simulation
-                        if cur_depth == 0:
-                            print("Depth is 0")
-                            # return the value of the agent at the end of the simulation (depth ran out, get rewards)
-                            return self.policy.rule._env._cumulative_rewards[restoreAgent]
-                        if node.is_leaf():
+                        elif node.is_leaf():
                             mask = observation["action_mask"]
                             obs = observation["observation"]
                             self.policy.update(self.policy.rule._env, agent, mask, obs) # keep the environment
 
                             action = self.policy.run()
                             self.policy.rule._env.step(action)
-                        else:
-                            print("GUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-                            node = _selection(node) # TODO wrong, only simulation, no selection
                             cur_depth -= 1
+                        else:
+                            # print("Unexpected non-leaf node during simulation, \
+                            #      investigate situation")
+                            cur_depth -= 1
+                            exit(0)
+                        if cur_depth == 0:
+                            # print("Depth is 0")
+                            # return the value of the agent at the end of the simulation (depth ran out, get rewards)
+                            return self.policy.rule._env._cumulative_rewards[restoreAgent]
+                # if time.time() >= timeout:
+                    # print("Time is up")
                 # return the value of the agent at the end of the simulation (time ran out, get rewards)
                 return self.policy.rule._env._cumulative_rewards[restoreAgent]
             simulation_result = _simulation(chosen_node, self.depth, timeout)
-            if simulation_result > 0:
-                print("Simulation result is positiveAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
             # Restore starting environment
             self.policy.rule._env = restoreEnv
-            print("Finished simulation.", simulation_result)
+            # print("Finished simulation.", simulation_result)
 
             # 4. Backpropagate value
             # Update the value of the ancestor nodes
@@ -149,15 +162,14 @@ class MCTS(Policy):
                     node.vi += value
                     node = node.parent
             _backpropagation(chosen_node, simulation_result)
-            print("Backpropagation is done.")
+            # print("Backpropagation is done.")
             self.policy.update(restoreEnv, restoreAgent, restoreMask, restoreObs)
 
         # Choose the node with highest mean value
-        print("Finished running MCTS. Choosing the best (root) node.")
         best = max(rootNode.children, key=lambda x: x.vi)
         #while best.parent.action is not None: # while not root node
         #    best = best.parent
-        print("Best (root) node is chosen.", best, best.action)
+        print("Finished running MCTS. Result action is", best.action)
         return best.action
 
 class MCS_LegalRandom(MCTS):
