@@ -18,64 +18,88 @@ class Rule:
         
     def _update_all(self, env, agent, mask, obs):
         def _update_obs(obs):
-            # Vector of Card X in other player’s hand
-            self._obs_hand_other_one = obs[0:25]
-            self._obs_hand_other_two = obs[25:50]
-            self._obs_hand_other_three = obs[50:75]
-            self._obs_hand_other_four = obs[75:100]
-            self._obs_hand_other_five = obs[100:125]
-            self._other_cards = [self._obs_hand_other_one, self._obs_hand_other_two, self._obs_hand_other_three,
-                                 self._obs_hand_other_four, self._obs_hand_other_five]
+            iter = 0
+            self._obs_other_players_hands = {}
+            for i in range(env.num_agents - 1):
+                # Vector of Card X in other player’s hand
+                card1 = obs[iter : iter+25]
+                card2 = obs[iter+25 : iter+50]
+                card3 = obs[iter+50 : iter+75]
+                card4 = obs[iter+75 : iter+100]
+                card5 = obs[iter+100 : iter+125]
+                cards = [card1, card2, card3, card4, card5]
+                self._obs_other_players_hands[f"next_player_{i}"] = cards
+                iter = iter + 125
+
             # Unary encoding of remaning deck size
-            self._obs_unary_remaining_deck = obs[125:175]
+            self._obs_unary_remaining_deck = obs[iter : iter+50]
+            iter = iter + 50
+
             # Vector of <Color> Firework
-            self._obs_playing_red_vector = obs[175:180]
-            self._obs_playing_yellow_vector = obs[180:185]
-            self._obs_playing_green_vector = obs[185:190]
-            self._obs_playing_white_vector = obs[190:195]
-            self._obs_playing_blue_vector = obs[195:200]
-            self._firework_info = [self._obs_playing_red_vector, self._obs_playing_yellow_vector, self._obs_playing_green_vector,
-                         self._obs_playing_white_vector, self._obs_playing_blue_vector]
+            red_vector = obs[iter : iter+5]
+            yellow_vector = obs[iter+5 : iter+10]
+            green_vector = obs[iter+10 : iter+15]
+            white_vector = obs[iter+15 : iter+20]
+            blue_vector = obs[iter+20 : iter+25]
+            self._obs_firework_info = [red_vector, yellow_vector, green_vector, white_vector, blue_vector]
+            iter = iter + 25
             
-            self._obs_remaining_info_tokens = obs[200:208]
-            self._obs_remaining_life_tokens = obs[208:211]
-            self._obs_discard_encoding_red = obs[211:221]
-            self._obs_discard_encoding_yellow = obs[221:231]
-            self._obs_discard_encoding_green = obs[231:241]
-            self._obs_discard_encoding_white = obs[241:251]
-            self._obs_discard_encoding_blue = obs[251:261]
-            self._obs_discarded_cards = [self._obs_discard_encoding_red, self._obs_discard_encoding_yellow, self._obs_discard_encoding_green,
-                                        self._obs_discard_encoding_white, self._obs_discard_encoding_blue]
-            # Revealed Info of This Player’s Xth Card
-            self._obs_previous_player_id = obs[261:263]
-            self._obs_previous_player_action_type = obs[263:267]
-            self._obs_previous_action_target = obs[267:269]
-            self._obs_previous_action_color_revealed = obs[269:274]
-            self._obs_previous_action_rank_revealed = obs[274:279]
-            self._obs_which_card_revealed = obs[279:281]
-            self._obs_position_played_card = obs[281:283]
-            self._obs_last_played_card = obs[283:308]
-            self._obs_player_first_card = obs[308:343]
-            self._obs_player_second_card = obs[343:378]
-            self._obs_player_third_card = obs[378:413]
-            self._obs_player_fourth_card = obs[413:448]
-            self._obs_player_fifth_card = obs[448:483]
-            self._cards_info = [self._obs_player_first_card, self._obs_player_second_card, self._obs_player_third_card, 
-                           self._obs_player_fourth_card, self._obs_player_fifth_card]
+            # Info regarding remaining tokens
+            self._obs_remaining_info_tokens = obs[iter : iter+8]
+            self._obs_remaining_life_tokens = obs[iter+8 : iter+11]
+            iter = iter + 11
+
+            # Info regarding already discarded cards
+            discarded_reds = obs[iter : iter+10]
+            discarded_yellows = obs[iter+10 : iter+20]
+            discarded_greens = obs[iter+20 : iter+30]
+            discarded_whites = obs[iter+30 : iter+40]
+            discarded_blues = obs[iter+40 : iter+50]
+            self._obs_discarded_cards = [discarded_reds, discarded_yellows, discarded_greens, discarded_whites, discarded_blues]
+            iter = iter + 50
+            
+            # Miscellaneous information about game
+            self._obs_previous_player_id = obs[iter : iter+2]
+            self._obs_previous_player_action_type = obs[iter+2 : iter+6]
+            self._obs_previous_action_target = obs[iter+6 : iter+8]
+            self._obs_previous_action_color_revealed = obs[iter+8 : iter+13]
+            self._obs_previous_action_rank_revealed = obs[iter+13 : iter+18]
+            self._obs_which_card_revealed = obs[iter+18 : iter+20]
+            self._obs_position_played_card = obs[iter+20 : iter+22]
+            self._obs_last_played_card = obs[iter+22 : iter+47]
+            iter = iter + 47
+
+            # Revealed info about players cards
+            first_card = obs[iter : iter+35]
+            second_card = obs[iter+35 : iter+70]
+            third_card = obs[iter+70 : iter+105]
+            fourth_card = obs[iter+105 : iter+140]
+            fifth_card = obs[iter+140 : iter+175]
+            self._cards_info = [first_card, second_card, third_card, fourth_card, fifth_card]
+            iter = iter + 175
+
             # Revealed Info of Other Player’s Xth Card
-            self._obs_other_first_card = obs[483:518]
-            self._obs_other_second_card = obs[518:553]
-            self._obs_other_third_card = obs[553:588]
-            self._obs_other_fourth_card = obs[588:623]
-            self._obs_other_fifth_card = obs[663:657]
-            self._other_cards_info = [self._obs_other_first_card, self._obs_other_second_card, self._obs_other_third_card, 
-                                 self._obs_other_fourth_card, self._obs_other_fifth_card]
+            self._obs_other_players_cards_info = {}
+            for i in range(env.num_agents - 1):
+                card1_info = obs[iter : iter+35]
+                card2_info = obs[iter+35 : iter+70]
+                card3_info = obs[iter+70 : iter+105]
+                card4_info = obs[iter+105 : iter+140]
+                card5_info = obs[iter+140 : iter+175]
+                cards_info = [card1_info, card2_info, card3_info, card4_info, card5_info]
+                self._obs_other_players_cards_info[f"next_player_{i}"] = cards_info
+                iter = iter + 175
 
         def _update_mask(mask):
             self._mask = mask
             self._discard_mask = mask[0:5]
             self._play_mask = mask[5:10]
-            self._tell_mask = mask[10:20]
+            # tell mask may have multiple other players
+            self._tell_mask = []
+            iter = 0
+            for i in range(env.num_agents - 1):
+                self._tell_mask = self._tell_mask + mask[iter : iter+10]
+                iter = iter + 10
 
         def _update_agent(env, agent):
             self._agent = agent
@@ -102,7 +126,7 @@ class Rule:
             safe_plays = 0
             unsafe_plays = 0
             color_infos = [card[0:5], card[5:10], card[10:15], card[15:20], card[20:25]]
-            for color_info, firework in zip(color_infos, self._firework_info):
+            for color_info, firework in zip(color_infos, self._obs_firework_info):
                 max_firework_rank = firework.index(0) - 1
                 # next, searches every possible play and evaluates if it is safe or unsafe
                 # it's only safe if the index of the play equals the max_firework_rank + 1 (next card in line)
@@ -162,11 +186,11 @@ class Rule:
 
         # TODO The code below can probably be reused for PlaySafeCard
 
-        last_played_red = sum(self._obs_playing_red_vector)
-        last_played_yellow = sum(self._obs_playing_yellow_vector)
-        last_played_green = sum(self._obs_playing_green_vector)
-        last_played_blue = sum(self._obs_playing_blue_vector)
-        last_played_white = sum(self._obs_playing_white_vector)
+        last_played_red = sum(self._obs_firework_info[0])
+        last_played_yellow = sum(self._obs_firework_info[1])
+        last_played_green = sum(self._obs_firework_info[2])
+        last_played_blue = sum(self._obs_firework_info[3])
+        last_played_white = sum(self._obs_firework_info[4])
         last_played = [last_played_red, last_played_yellow, last_played_green, last_played_white, last_played_blue]
 
         # remove all cards from the mask
@@ -199,41 +223,63 @@ class Rule:
 
         return oldest_card
 
+    # goes through every oponents card and checks if it can be played
     def tell_anyone_about_useful_card(self):
-        # go through all the cards and check if any of them can be told
-        for card, index in zip(self._other_cards_info, [0,1,2,3,4]):
-            color_info = card[0:5]
-            rank_info = card[5:10]
-            # if there is a color or rank that is not known
-            if 1 not in color_info or 1 not in rank_info:
-                # check if the tell mask allows for a tell action
-                if self._tell_mask[index] == 1:
-                    return index + 10
-        return None
-    
-    def tell_dispensable(self):
-        discarded_cards = check_discard(self, self._other_cards)
-        indexes = []
-
-        if discarded_cards is None:
-            return None
-        else:
-            for discarded_card in discarded_cards:
-                other_card = self._other_cards[discarded_card]
+        counter = 0
+        for other_cards_key, other_cards_info_key in zip(self._obs_other_players_hands, self._obs_other_players_cards_info):
+            other_cards = self._obs_other_players_hands[other_cards_key]
+            other_cards_info = self._obs_other_players_cards_info[other_cards_info_key]
+            # need to go through each card at a time
+            for other_card, other_card_info in zip(other_cards, other_cards_info):
                 for color in range(5):
                     for rank in range(5):
                         if other_card[color*5 + rank] == 1:
                             indexes = [color, rank]
+                # if the card being analyzed is the next in line for its color, it's useful
+                if sum(self._obs_firework_info[indexes[0]]) == indexes[1]:
+                    color_info = other_card_info[25:30]
+                    rank_info = other_card_info[30:35]
+                    if color_info.count(1) > 1:
+                        if self._mask[indexes[0] + 10 + counter*10] == 1:
+                            return indexes[0] + 10 + counter*10
+                    elif rank_info.count(1) > 1:
+                        if self._mask[indexes[1] + 15 + counter*10] == 1:
+                            return indexes[1] + 15 + counter*10
+                        
+            counter = counter + 1
 
-                color_info = self._other_cards_info[discarded_card][25:30]
-                rank_info = self._other_cards_info[discarded_card][30:35]
-                if color_info.count(1) == 1 and rank_info.count(1) != 1:
-                    if self._discard_mask[indexes[1] + 15] == 1:
-                        return indexes[1] + 15
-                if color_info.count(1) != 1 and rank_info.count(1) == 1:
-                    if self._discard_mask[indexes[0] + 10] == 1:
-                        return indexes[0] + 10
-                    
+        return None
+
+    
+    def tell_dispensable(self):
+        counter = 0
+        for other_cards_key, other_cards_info_key in zip(self._obs_other_players_hands, self._obs_other_players_cards_info):
+            other_cards = self._obs_other_players_hands[other_cards_key]
+            other_cards_info = self._obs_other_players_cards_info[other_cards_info_key]
+
+            discarded_cards = check_discard(self, other_cards)
+            indexes = []
+
+            if discarded_cards is None:
+                continue
+            else:
+                for discarded_card in discarded_cards:
+                    other_card = other_cards[discarded_card]
+                    for color in range(5):
+                        for rank in range(5):
+                            if other_card[color*5 + rank] == 1:
+                                indexes = [color, rank]
+
+                    color_info = other_cards_info[discarded_card][25:30]
+                    rank_info = other_cards_info[discarded_card][30:35]
+                    if color_info.count(1) == 1 and rank_info.count(1) != 1:
+                        if self._mask[indexes[1] + 15 + counter*10] == 1:
+                            return indexes[1] + 15 + counter*10
+                    if color_info.count(1) != 1 and rank_info.count(1) == 1:
+                        if self._mask[indexes[0] + 10 + counter*10] == 1:
+                            return indexes[0] + 10 + counter*10
+            counter = counter + 1
+                        
         return None
                 
 # auxiliary functions not inside class Rule
@@ -248,7 +294,7 @@ def check_discard(rule, cards):
         # let's use the information gathered from the first 25 bits of each card info
         discard = True
         color_infos = [card[0:5], card[5:10], card[10:15], card[15:20], card[20:25]]
-        for color_info, firework in zip(color_infos, rule._firework_info):
+        for color_info, firework in zip(color_infos, rule._obs_firework_info):
             if 1 not in color_info:
                 continue
             max_rank = len(color_info) - color_info[::-1].index(1) - 1
