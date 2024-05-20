@@ -22,8 +22,8 @@ def copy_env(env):
     return new_env
 
 class Policy:
-    def __init__(self, env, agent, mask, obs):
-        self.rule = Rule(env, agent, mask, obs)
+    def __init__(self, env, agent, mask, obs, card_age):
+        self.rule = Rule(env, agent, mask, obs, card_age)
     
     def update(self, env, agent, mask, obs): # no env
         self.rule._update_all(env, agent, mask, obs)

@@ -11,8 +11,15 @@ env.reset(seed=SEED)
 
 env.render()
 
+# need to have card_age for all players, useful in some rules
+cards_age = {}
+for i in range(env.num_agents):
+    cards_age_key = f"player_{i}"
+    cards_age[cards_age_key] = [0, 0, 0, 0, 0]
+
 for agent in env.agent_iter():
     observation, reward, termination, truncation, info = env.last()
+    card_age = cards_age[agent]
     if termination or truncation:
         action = None
     else:
@@ -20,11 +27,14 @@ for agent in env.agent_iter():
         obs = observation["observation"]
         # this is where you would insert your policy
         if agent == "player_0":
-            policy = PlayerInput(env, agent, mask, obs)
+            policy = PlayerInput(env, agent, mask, obs, card_age)
         else:
-            policy = MCS_LegalRandom(env, agent, mask, obs)
+            policy = MCS_LegalRandom(env, agent, mask, obs, card_age)
         action = policy.run()
         env.action_history.append(action)
+
+        # need to update cards after every play
+        cards_age[agent] = update_card_age(card_age, action)
 
     env.step(action)
 env.close()

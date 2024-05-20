@@ -15,26 +15,9 @@ class Rule:
             self._play_mask[3] = 0
         if sum(self._obs_player_fifth_card[0:25]) != 1:
             self._play_mask[4] = 0
-
-    def _update_card_age(self, action: int):
-        # increment all elements by 1
-        self._card_age = [x + 1 for x in self._card_age]
-
-        if action < 5:
-            # it's a discard action
-            # they map from 0 to 4 to the cards from left to right
-            self._card_age[action] = 0
-        elif 5 < action < 10:
-            # it's a play action
-            # they map from 5 to 9 to the cards from left to right
-            self._card_age[action - 5] = 0
-        else:
-            # we can ignore tell actions
-            pass
         
     def _update_all(self, env, agent, mask, obs):
         def _update_obs(obs):
-            
             # Vector of Card X in other player’s hand
             self._obs_hand_other_one = obs[0:25]
             self._obs_hand_other_two = obs[25:50]
@@ -88,7 +71,6 @@ class Rule:
             self._other_cards_info = [self._obs_other_first_card, self._obs_other_second_card, self._obs_other_third_card, 
                                  self._obs_other_fourth_card, self._obs_other_fifth_card]
 
-            
         def _update_mask(mask):
             self._mask = mask
             self._discard_mask = mask[0:5]
@@ -104,8 +86,8 @@ class Rule:
         _update_agent(env, agent)
     
     # constructor
-    def __init__(self, env, agent, mask, obs):
-        self.card_age = [0, 0, 0, 0, 0]
+    def __init__(self, env, agent, mask, obs, card_age):
+        self.card_age = card_age
         self._update_all(env, agent, mask, obs)
     
     def get_mask(self):
@@ -113,8 +95,7 @@ class Rule:
 
     # PlayProbablySafeCard(𝑇ℎ𝑟𝑒𝑠ℎ𝑜𝑙𝑑 ∈ [0, 1]) - goes through every possible action and defines a ration 
     # (safe actions/safe + unsafe actions), if the ration is above the threshold for any card, plays that card
-    def play_probably_safe_card(self, env, agent, mask, obs, threshold):
-        self._update_all(env, agent, mask, obs)
+    def play_probably_safe_card(self, threshold):
         probabilities = [0.0, 0.0, 0.0, 0.0, 0.0]
         
         for card, index in zip(self._cards_info, [0,1,2,3,4]):
@@ -144,39 +125,32 @@ class Rule:
             return None # no probability is higher than the threshold
 
     # TODO #1 PlaySafeCard
-    def play_safe_card(self, env, agent, mask, obs):
+    def play_safe_card(self):
         # go read down below, probably somethings are already done in PlayIfCertain
-        return self.play_probably_safe_card(env, agent, mask, obs, 1)
+        return self.play_probably_safe_card(1)
 
         # besides looking at possible cards on hand, it should also look at cards that have been discarded in only to narrow down options
 
     # OsawaDiscard - if a card is safe to discard (meaning that in no way can that card be played in the future), discards that card
-    def osawa_discard(self, env, agent, mask, obs):
-        self._update_all(env, agent, mask, obs)
-
+    def osawa_discard(self):
         discarded_cards = check_discard(self, self._cards_info)
 
         if discarded_cards is None:
             return None
         else:
-            self._update_card_age(discarded_cards[0])
             return discarded_cards[0]
 
     # TellRandomly
-    def tell_random(self, env, agent, mask, obs):
-        self._update_all(env, agent, mask, obs)
+    def tell_random(self):
         return self._env.action_space(self._agent).sample(self._tell_mask)
 
     # DiscardRandomly
-    def discard_random(self, env, agent, mask, obs):
-        self._update_all(env, agent, mask, obs)
+    def discard_random(self):
         action = self._env.action_space(self._agent).sample(self._discard_mask)
-        self._update_card_age(action)
         return action
     
     # PlayIfCertain
-    def play_if_certain(self, env, agent, mask, obs):
-        self._update_all(env, agent, mask, obs)
+    def play_if_certain(self):
         # a card is certain when in the first 25 bits of the card info, there is only one bit set to 1
         # this means that the card is known to be a certain color and rank
         # check if the card is certain
@@ -217,26 +191,15 @@ class Rule:
                     self._play_mask[i] = 1
         
         action = self._env.action_space(self._agent).sample(self._play_mask)
-        self._update_card_age(action)
         return action
 
-    def discard_oldest_first(self, env, agent, mask, obs):
-        self._update_all(env, agent, mask, obs)
-
+    def discard_oldest_first(self):
         # get the oldest card
         oldest_card = self._card_age.index(max(self._card_age))
 
-        # change the discard mask to only discard the oldest card
-        self._discard_mask = [0, 0, 0, 0, 0]
-        self._discard_mask[oldest_card] = 1
+        return oldest_card
 
-        action = self._env.action_space(self._agent).sample(self._discard_mask)
-        self._update_card_age(action)
-        return action
-
-    def tell_anyone_about_useful_card(self, env, agent, mask, obs):
-        self._update_all(env, agent, mask, obs)
-
+    def tell_anyone_about_useful_card(self):
         # go through all the cards and check if any of them can be told
         for card, index in zip(self._other_cards_info, [0,1,2,3,4]):
             color_info = card[0:5]
@@ -248,9 +211,7 @@ class Rule:
                     return index + 10
         return None
     
-    def tell_dispensable(self, env, agent, mask, obs):
-        self._update_all(env, agent, mask, obs)
-
+    def tell_dispensable(self):
         discarded_cards = check_discard(self, self._other_cards)
         indexes = []
 
@@ -277,7 +238,7 @@ class Rule:
                 
 # auxiliary functions not inside class Rule
 
-# go through a set of cards and checks in any of them can be discarded
+# go through a set of cards and checks if any of them can be discarded, returns the ones that can
 
 def check_discard(rule, cards):
 
