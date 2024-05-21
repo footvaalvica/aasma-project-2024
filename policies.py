@@ -26,7 +26,8 @@ class Policy:
         self.rule = Rule(env, agent, mask, obs, card_age)
     
     def update(self, env, agent, mask, obs, card_age): # no env
-        self.rule._update_all(env, agent, mask, obs, card_age)
+        self.rule.card_age = card_age
+        self.rule._update_all(env, agent, mask, obs)
 
 class MCTS(Policy):
     def __init__(self, env, agent, mask, obs, card_age, depth, policy, timelimit):
@@ -176,7 +177,7 @@ class MCS_LegalRandom(MCTS):
     def __init__(self, env, agent, mask, obs, card_age):
         depth = 1
         timelimit = 1 # seconds
-        policy = LegalRandom(env, agent, mask, obs)
+        policy = LegalRandom(env, agent, mask, obs, card_age)
         super().__init__(env, agent, mask, obs, card_age, depth, policy, timelimit)
 
     def run(self):
@@ -282,8 +283,4 @@ class IGGI(Policy):
             print("I am discarding oldest first")
             return self.rule.discard_oldest_first()
        
-
-# TODO #5 PredictorIS-MCTS Policy is missing
-class PredictorISMCTS:
-    pass
-    
+# TODO more
