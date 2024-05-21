@@ -18,77 +18,77 @@ class Rule:
         
     def _update_all(self, env, agent, mask, obs):
         def _update_obs(obs):
-            iter = 0
+            it = 0
             self._obs_other_players_hands = {}
             for i in range(env.num_agents - 1):
                 # Vector of Card X in other player’s hand
-                card1 = obs[iter : iter+25]
-                card2 = obs[iter+25 : iter+50]
-                card3 = obs[iter+50 : iter+75]
-                card4 = obs[iter+75 : iter+100]
-                card5 = obs[iter+100 : iter+125]
+                card1 = obs[it : it+25]
+                card2 = obs[it+25 : it+50]
+                card3 = obs[it+50 : it+75]
+                card4 = obs[it+75 : it+100]
+                card5 = obs[it+100 : it+125]
                 cards = [card1, card2, card3, card4, card5]
                 self._obs_other_players_hands[f"next_player_{i}"] = cards
-                iter = iter + 125
+                it = it + 125
 
             # Unary encoding of remaning deck size
-            self._obs_unary_remaining_deck = obs[iter : iter+50]
-            iter = iter + 50
+            self._obs_unary_remaining_deck = obs[it : it+50]
+            it = it + 50
 
             # Vector of <Color> Firework
-            red_vector = obs[iter : iter+5]
-            yellow_vector = obs[iter+5 : iter+10]
-            green_vector = obs[iter+10 : iter+15]
-            white_vector = obs[iter+15 : iter+20]
-            blue_vector = obs[iter+20 : iter+25]
+            red_vector = obs[it : it+5]
+            yellow_vector = obs[it+5 : it+10]
+            green_vector = obs[it+10 : it+15]
+            white_vector = obs[it+15 : it+20]
+            blue_vector = obs[it+20 : it+25]
             self._obs_firework_info = [red_vector, yellow_vector, green_vector, white_vector, blue_vector]
-            iter = iter + 25
+            it = it + 25
             
             # Info regarding remaining tokens
-            self._obs_remaining_info_tokens = obs[iter : iter+8]
-            self._obs_remaining_life_tokens = obs[iter+8 : iter+11]
-            iter = iter + 11
+            self._obs_remaining_info_tokens = obs[it : it+8]
+            self._obs_remaining_life_tokens = obs[it+8 : it+11]
+            it = it + 11
 
             # Info regarding already discarded cards
-            discarded_reds = obs[iter : iter+10]
-            discarded_yellows = obs[iter+10 : iter+20]
-            discarded_greens = obs[iter+20 : iter+30]
-            discarded_whites = obs[iter+30 : iter+40]
-            discarded_blues = obs[iter+40 : iter+50]
+            discarded_reds = obs[it : it+10]
+            discarded_yellows = obs[it+10 : it+20]
+            discarded_greens = obs[it+20 : it+30]
+            discarded_whites = obs[it+30 : it+40]
+            discarded_blues = obs[it+40 : it+50]
             self._obs_discarded_cards = [discarded_reds, discarded_yellows, discarded_greens, discarded_whites, discarded_blues]
-            iter = iter + 50
+            it = it + 50
             
             # Miscellaneous information about game
-            self._obs_previous_player_id = obs[iter : iter+2]
-            self._obs_previous_player_action_type = obs[iter+2 : iter+6]
-            self._obs_previous_action_target = obs[iter+6 : iter+8]
-            self._obs_previous_action_color_revealed = obs[iter+8 : iter+13]
-            self._obs_previous_action_rank_revealed = obs[iter+13 : iter+18]
-            self._obs_which_card_revealed = obs[iter+18 : iter+20]
-            self._obs_position_played_card = obs[iter+20 : iter+22]
-            self._obs_last_played_card = obs[iter+22 : iter+47]
-            iter = iter + 47
+            self._obs_previous_player_id = obs[it : it+2]
+            self._obs_previous_player_action_type = obs[it+2 : it+6]
+            self._obs_previous_action_target = obs[it+6 : it+8]
+            self._obs_previous_action_color_revealed = obs[it+8 : it+13]
+            self._obs_previous_action_rank_revealed = obs[it+13 : it+18]
+            self._obs_which_card_revealed = obs[it+18 : it+20]
+            self._obs_position_played_card = obs[it+20 : it+22]
+            self._obs_last_played_card = obs[it+22 : it+47]
+            it = it + 47
 
             # Revealed info about players cards
-            first_card = obs[iter : iter+35]
-            second_card = obs[iter+35 : iter+70]
-            third_card = obs[iter+70 : iter+105]
-            fourth_card = obs[iter+105 : iter+140]
-            fifth_card = obs[iter+140 : iter+175]
+            first_card = obs[it : it+35]
+            second_card = obs[it+35 : it+70]
+            third_card = obs[it+70 : it+105]
+            fourth_card = obs[it+105 : it+140]
+            fifth_card = obs[it+140 : it+175]
             self._cards_info = [first_card, second_card, third_card, fourth_card, fifth_card]
-            iter = iter + 175
+            it = it + 175
 
             # Revealed Info of Other Player’s Xth Card
             self._obs_other_players_cards_info = {}
             for i in range(env.num_agents - 1):
-                card1_info = obs[iter : iter+35]
-                card2_info = obs[iter+35 : iter+70]
-                card3_info = obs[iter+70 : iter+105]
-                card4_info = obs[iter+105 : iter+140]
-                card5_info = obs[iter+140 : iter+175]
+                card1_info = obs[it : it+35]
+                card2_info = obs[it+35 : it+70]
+                card3_info = obs[it+70 : it+105]
+                card4_info = obs[it+105 : it+140]
+                card5_info = obs[it+140 : it+175]
                 cards_info = [card1_info, card2_info, card3_info, card4_info, card5_info]
                 self._obs_other_players_cards_info[f"next_player_{i}"] = cards_info
-                iter = iter + 175
+                it = it + 175
 
         def _update_mask(mask):
             self._mask = mask
@@ -96,10 +96,10 @@ class Rule:
             self._play_mask = mask[5:10]
             # tell mask may have multiple other players
             self._tell_mask = []
-            iter = 0
+            it = 0
             for i in range(env.num_agents - 1):
-                self._tell_mask = self._tell_mask + mask[iter : iter+10]
-                iter = iter + 10
+                self._tell_mask.append(mask[it : it+10])
+                it = it + 10
 
         def _update_agent(env, agent):
             self._agent = agent
