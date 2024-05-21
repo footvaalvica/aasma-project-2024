@@ -40,7 +40,7 @@ class Rule:
             # Unary encoding of remaining deck size
             self._obs_unary_remaining_deck = obs[it : it+50]
             print(f"self._obs_unary_remaining_deck: {self._obs_unary_remaining_deck}")
-            it = it + 50
+            it = it + 50 - 8 # for some reason, have to go back 8
             print(f"it after unary remaining deck: {it}")
 
             # Vector of <Color> Firework
@@ -81,7 +81,7 @@ class Rule:
             it = it + 50
             print(f"it after discarded cards: {it}")
 
-            # Miscellaneous information about game
+            # Miscellaneous information about game (might not be 100% certain)
             self._obs_previous_player_id = obs[it : it+2]
             print(f"self._obs_previous_player_id: {self._obs_previous_player_id}")
             self._obs_previous_player_action_type = obs[it+2 : it+6]
@@ -98,10 +98,10 @@ class Rule:
             print(f"self._obs_position_played_card: {self._obs_position_played_card}")
             self._obs_last_played_card = obs[it+22 : it+47]
             print(f"self._obs_last_played_card: {self._obs_last_played_card}")
-            it = it + 47
+            it = it + 47 + 8
             print(f"it after previous player info: {it}")
 
-            # Revealed info about players cards
+            # Revealed info about player's cards
             first_card = obs[it : it+35]
             print(f"first_card: {first_card}")
             second_card = obs[it+35 : it+70]

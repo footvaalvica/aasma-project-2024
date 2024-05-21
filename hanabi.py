@@ -25,11 +25,12 @@ for agent in env.agent_iter():
     else:
         mask = observation["action_mask"]
         obs = observation["observation"]
+
         # this is where you would insert your policy
         if agent == "player_0":
             policy = PlayerInput(env, agent, mask, obs, card_age)
         else:
-            policy = MCS_LegalRandom(env, agent, mask, obs, card_age)
+            policy = LegalRandom(env, agent, mask, obs, card_age)
         action = policy.run()
         env.action_history.append(action)
 

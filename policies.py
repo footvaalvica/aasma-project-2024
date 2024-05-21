@@ -176,7 +176,7 @@ class MCS_LegalRandom(MCTS):
     def __init__(self, env, agent, mask, obs, card_age):
         depth = 1
         timelimit = 1 # seconds
-        policy = LegalRandom(env, agent, mask, obs)
+        policy = LegalRandom(env, agent, mask, obs, card_age)
         super().__init__(env, agent, mask, obs, card_age, depth, policy, timelimit)
 
     def run(self):
