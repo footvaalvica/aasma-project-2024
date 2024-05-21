@@ -1,3 +1,5 @@
+import numpy as np
+
 # This file contains the rules for the Hanabi game agent. The rules are implemented as methods of the Rules class. The Rules class is used by the Policy class to generate policies for the agent.
 class Rule:
     # every method should update the obs and mask
@@ -73,9 +75,13 @@ class Rule:
 
         def _update_mask(mask):
             self._mask = mask
-            self._discard_mask = mask[0:5]
-            self._play_mask = mask[5:10]
-            self._tell_mask = mask[10:20]
+            self._discard_mask = mask.copy()
+            self._discard_mask[5:] = 0
+            self._play_mask = mask.copy()
+            self._play_mask[0:5] = 0
+            self._play_mask[10:] = 0
+            self._tell_mask = mask.copy()
+            self._tell_mask[0:10] = 0
 
         def _update_agent(env, agent):
             self._agent = agent
@@ -103,7 +109,7 @@ class Rule:
             unsafe_plays = 0
             color_infos = [card[0:5], card[5:10], card[10:15], card[15:20], card[20:25]]
             for color_info, firework in zip(color_infos, self._firework_info):
-                max_firework_rank = firework.index(0) - 1
+                max_firework_rank = firework[0] - 1
                 # next, searches every possible play and evaluates if it is safe or unsafe
                 # it's only safe if the index of the play equals the max_firework_rank + 1 (next card in line)
                 for play, play_index in zip(color_info, [0,1,2,3,4]):
@@ -170,7 +176,7 @@ class Rule:
         last_played = [last_played_red, last_played_yellow, last_played_green, last_played_white, last_played_blue]
 
         # remove all cards from the mask
-        self._play_mask = [0, 0, 0, 0, 0]
+        self._play_mask = np.array(([0] * 20), dtype=np.int8)
 
         for i in self._cards_info:
             red_vector = i[0:5]
@@ -182,7 +188,7 @@ class Rule:
 
             for i, vector in enumerate(vectors):
                 # get the index of the first bit set to one in the vector
-                index = vector.index(1)
+                index = vector[1]
                 current_last_played = last_played[i]
 
                 if index == current_last_played:
@@ -195,7 +201,7 @@ class Rule:
 
     def discard_oldest_first(self):
         # get the oldest card
-        oldest_card = self._card_age.index(max(self._card_age))
+        oldest_card = self._card_age[max(self._card_age)]
 
         return oldest_card
 
@@ -251,8 +257,8 @@ def check_discard(rule, cards):
         for color_info, firework in zip(color_infos, rule._firework_info):
             if 1 not in color_info:
                 continue
-            max_rank = len(color_info) - color_info[::-1].index(1) - 1
-            max_firework_rank = firework.index(0) - 1
+            max_rank = len(color_info) - (color_info[::-1])[1] - 1
+            max_firework_rank = firework[0] - 1
             if max_rank > max_firework_rank:
                 # can't discard if max rank is higher than the current firework rank
                 discard = False
@@ -273,7 +279,7 @@ def check_discard(rule, cards):
             rank_5_infos = discarded_cards[9]
             discard_rank_infos = [rank_1_infos, rank_2_infos, rank_3_infos,
                                     rank_4_infos, rank_5_infos]
-            max_possible_rank = len(color_info) - color_info[::-1].index(1) - 1 # gets highest 1 from the color_info list
+            max_possible_rank = len(color_info) - (color_info[::-1])[1] - 1 # gets highest 1 from the color_info list
 
             discard = False
             for i in range(max_possible_rank, 6):

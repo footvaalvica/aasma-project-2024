@@ -190,24 +190,20 @@ class Flawed(Policy):
 
     def run(self):
         # it first tries PlaySafeCard, PlayProbablySafeCard(0.25), TellRandomly, OsawaDiscard, then DiscardOldestFirst, then DiscardRandomly
-        if self.rule.play_safe_card() is not None:
+        if (action := self.rule.play_safe_card()) is not None:
             print("I am playing safe card")
-            return self.rule.play_safe_card()
-        elif self.rule.play_probably_safe_card(0.25) is not None:
+        elif (action := self.rule.play_probably_safe_card(0.25)) is not None:
             print("I am playing probably safe card with a probability of 0.25")
-            return self.rule.play_probably_safe_card(0.25)
-        elif self.rule.tell_randomly() is not None:
+        elif (action := self.rule.tell_random()) is not None:
             print("I am telling randomly")
-            return self.rule.tell_randomly()
-        elif self.rule.osawa_discard() is not None:
+        elif (action := self.rule.osawa_discard()) is not None:
             print("I am osawa discarding")
-            return self.rule.osawa_discard()
-        elif self.rule.discard_oldest_first() is not None:
+        elif (action := self.rule.discard_oldest_first()) is not None:
             print("I am discarding oldest first")
-            return self.rule.discard_oldest_first()
         else:
             print("I am discarding randomly")
-            return self.rule.discard_randomly()
+            return self.rule.discard_random()
+        return action
 
 class PlayerInput(Policy):
     def __init__(self, env, agent, mask, obs, card_age):
@@ -233,33 +229,26 @@ class Piers(Policy):
 
     def run(self):
         if sum(self.rule._obs_remaining_life_tokens) > 1 and sum(self.rule._obs_unary_remaining_deck)\
-        and self.rule.play_probably_safe_card(0.0) is not None:
+        and (action := self.rule.play_probably_safe_card(0.0)) is not None:
             print("I am playing probabuly safe card (0.0)")
-            return self.rule.play_probably_safe_card(0.0)
-        elif self.rule.play_safe_card() is not None:
+        elif (action := self.rule.play_safe_card()) is not None:
             print("I am playing safe card")
-            return self.rule.play_safe_card()
-        elif sum(self.rule._obs_remaining_life_tokens) > 1 and self.rule.play_probably_safe_card(0.6) is not None:
+        elif sum(self.rule._obs_remaining_life_tokens) > 1 and (action := self.rule.play_probably_safe_card(0.6)) is not None:
             print("I am playing probabuly safe card (0.6)")
-            return self.rule.play_probably_safe_card(0.6)
-        elif self.rule.tell_anyone_about_useful_card() is not None:
+        elif (action := self.rule.tell_anyone_about_useful_card()) is not None:
             print("I am telling anyone about useful card")
-            return self.rule.tell_anyone_about_useful_card()
-        elif sum(self.rule._obs_remaining_info_tokens) < 4  and self.rule.tell_dispensable() is not None:
+        elif sum(self.rule._obs_remaining_info_tokens) < 4  and (action:= self.rule.tell_dispensable()) is not None:
             print("I am telling next player about dispensable card")
-            return self.rule.tell_dispensable()
-        elif self.rule.osawa_discard() is not None:
+        elif (action := self.rule.osawa_discard()) is not None:
             print("I am osawa discarding")
-            return self.rule.osawa_discard()
-        elif self.rule.discard_oldest_first() is not None:
+        elif (action := self.rule.discard_oldest_first()) is not None:
             print("I am discarding older first")
-            return self.rule.discard_oldest_first()
-        elif self.rule.tell_random() is not None:
+        elif (action := self.rule.tell_random()) is not None:
             print("I am telling randomly")
-            return self.rule.tell_random()
         else:
             print("I am discarding randomly")
             return self.rule.discard_random()
+        return action
 
 class IGGI(Policy):
     def __init__(self, env, agent, mask, obs, card_age):
@@ -267,20 +256,17 @@ class IGGI(Policy):
 
     def run(self):
         # it first tries PlayIfCertain, then PlaySafeCard, then TellAnyoneAboutUsefulCard, then OsawaDiscard, then DiscardOldestFirst
-        if self.rule.play_if_certain() is not None:
+        if (action := self.rule.play_if_certain()) is not None:
             print("I am playing if certain")
-            return self.rule.play_if_certain()
-        elif self.rule.play_safe_card() is not None:
+        elif (action := self.rule.play_safe_card()) is not None:
             print("I am playing safe card")
-            return self.rule.play_safe_card()
-        elif self.rule.tell_anyone_about_useful_card() is not None:
+        elif (action := self.rule.tell_anyone_about_useful_card()) is not None:
             print("I am telling anyone about useful card")
-            return self.rule.tell_anyone_about_useful_card()
-        elif self.rule.osawa_discard() is not None:
+        elif (action := self.rule.osawa_discard()) is not None:
             print("I am osawa discarding")
-            return self.rule.osawa_discard()
         else:
             print("I am discarding oldest first")
             return self.rule.discard_oldest_first()
+        return action
        
 # TODO more
