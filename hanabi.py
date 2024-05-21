@@ -2,10 +2,14 @@
 from policies import *
 from utils import *
 from random import randint
+import sys
 
-SEED = randint(0, 1000)
+if len(sys.argv) > 1:
+    seed = int(sys.argv[1])
+else:
+    seed = randint(0, 1000)
 env = EnvWrapper(colors=5, ranks=5, players=2, hand_size=5, max_information_tokens=8, max_life_tokens=3, observation_type='card_knowledge', render_mode='human')
-env.reset(seed=SEED)
+env.reset(seed=seed)
 
 env.render()
 
