@@ -23,72 +23,116 @@ class Rule:
             for i in range(env.num_agents - 1):
                 # Vector of Card X in other player’s hand
                 card1 = obs[it : it+25]
+                print(f"card1 (player {i}): {card1}")
                 card2 = obs[it+25 : it+50]
+                print(f"card2 (player {i}): {card2}")
                 card3 = obs[it+50 : it+75]
+                print(f"card3 (player {i}): {card3}")
                 card4 = obs[it+75 : it+100]
+                print(f"card4 (player {i}): {card4}")
                 card5 = obs[it+100 : it+125]
+                print(f"card5 (player {i}): {card5}")
                 cards = [card1, card2, card3, card4, card5]
                 self._obs_other_players_hands[f"next_player_{i}"] = cards
                 it = it + 125
+                print(f"it after processing player {i}'s hand: {it}")
 
-            # Unary encoding of remaning deck size
+            # Unary encoding of remaining deck size
             self._obs_unary_remaining_deck = obs[it : it+50]
+            print(f"self._obs_unary_remaining_deck: {self._obs_unary_remaining_deck}")
             it = it + 50
+            print(f"it after unary remaining deck: {it}")
 
             # Vector of <Color> Firework
             red_vector = obs[it : it+5]
+            print(f"red_vector: {red_vector}")
             yellow_vector = obs[it+5 : it+10]
+            print(f"yellow_vector: {yellow_vector}")
             green_vector = obs[it+10 : it+15]
+            print(f"green_vector: {green_vector}")
             white_vector = obs[it+15 : it+20]
+            print(f"white_vector: {white_vector}")
             blue_vector = obs[it+20 : it+25]
+            print(f"blue_vector: {blue_vector}")
             self._obs_firework_info = [red_vector, yellow_vector, green_vector, white_vector, blue_vector]
             it = it + 25
-            
+            print(f"it after firework vectors: {it}")
+
             # Info regarding remaining tokens
             self._obs_remaining_info_tokens = obs[it : it+8]
+            print(f"self._obs_remaining_info_tokens: {self._obs_remaining_info_tokens}")
             self._obs_remaining_life_tokens = obs[it+8 : it+11]
+            print(f"self._obs_remaining_life_tokens: {self._obs_remaining_life_tokens}")
             it = it + 11
+            print(f"it after remaining tokens: {it}")
 
             # Info regarding already discarded cards
             discarded_reds = obs[it : it+10]
+            print(f"discarded_reds: {discarded_reds}")
             discarded_yellows = obs[it+10 : it+20]
+            print(f"discarded_yellows: {discarded_yellows}")
             discarded_greens = obs[it+20 : it+30]
+            print(f"discarded_greens: {discarded_greens}")
             discarded_whites = obs[it+30 : it+40]
+            print(f"discarded_whites: {discarded_whites}")
             discarded_blues = obs[it+40 : it+50]
+            print(f"discarded_blues: {discarded_blues}")
             self._obs_discarded_cards = [discarded_reds, discarded_yellows, discarded_greens, discarded_whites, discarded_blues]
             it = it + 50
-            
+            print(f"it after discarded cards: {it}")
+
             # Miscellaneous information about game
             self._obs_previous_player_id = obs[it : it+2]
+            print(f"self._obs_previous_player_id: {self._obs_previous_player_id}")
             self._obs_previous_player_action_type = obs[it+2 : it+6]
+            print(f"self._obs_previous_player_action_type: {self._obs_previous_player_action_type}")
             self._obs_previous_action_target = obs[it+6 : it+8]
+            print(f"self._obs_previous_action_target: {self._obs_previous_action_target}")
             self._obs_previous_action_color_revealed = obs[it+8 : it+13]
+            print(f"self._obs_previous_action_color_revealed: {self._obs_previous_action_color_revealed}")
             self._obs_previous_action_rank_revealed = obs[it+13 : it+18]
+            print(f"self._obs_previous_action_rank_revealed: {self._obs_previous_action_rank_revealed}")
             self._obs_which_card_revealed = obs[it+18 : it+20]
+            print(f"self._obs_which_card_revealed: {self._obs_which_card_revealed}")
             self._obs_position_played_card = obs[it+20 : it+22]
+            print(f"self._obs_position_played_card: {self._obs_position_played_card}")
             self._obs_last_played_card = obs[it+22 : it+47]
+            print(f"self._obs_last_played_card: {self._obs_last_played_card}")
             it = it + 47
+            print(f"it after previous player info: {it}")
 
             # Revealed info about players cards
             first_card = obs[it : it+35]
+            print(f"first_card: {first_card}")
             second_card = obs[it+35 : it+70]
+            print(f"second_card: {second_card}")
             third_card = obs[it+70 : it+105]
+            print(f"third_card: {third_card}")
             fourth_card = obs[it+105 : it+140]
+            print(f"fourth_card: {fourth_card}")
             fifth_card = obs[it+140 : it+175]
+            print(f"fifth_card: {fifth_card}")
             self._cards_info = [first_card, second_card, third_card, fourth_card, fifth_card]
             it = it + 175
+            print(f"it after players cards info: {it}")
 
             # Revealed Info of Other Player’s Xth Card
             self._obs_other_players_cards_info = {}
             for i in range(env.num_agents - 1):
                 card1_info = obs[it : it+35]
+                print(f"card1_info (player {i}): {card1_info}")
                 card2_info = obs[it+35 : it+70]
+                print(f"card2_info (player {i}): {card2_info}")
                 card3_info = obs[it+70 : it+105]
+                print(f"card3_info (player {i}): {card3_info}")
                 card4_info = obs[it+105 : it+140]
+                print(f"card4_info (player {i}): {card4_info}")
                 card5_info = obs[it+140 : it+175]
+                print(f"card5_info (player {i}): {card5_info}")
                 cards_info = [card1_info, card2_info, card3_info, card4_info, card5_info]
                 self._obs_other_players_cards_info[f"next_player_{i}"] = cards_info
                 it = it + 175
+                print(f"it after processing player {i}'s cards info: {it}")
 
         def _update_mask(mask):
             self._mask = mask
