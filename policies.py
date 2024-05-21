@@ -25,12 +25,12 @@ class Policy:
     def __init__(self, env, agent, mask, obs, card_age):
         self.rule = Rule(env, agent, mask, obs, card_age)
     
-    def update(self, env, agent, mask, obs): # no env
-        self.rule._update_all(env, agent, mask, obs)
+    def update(self, env, agent, mask, obs, card_age): # no env
+        self.rule._update_all(env, agent, mask, obs, card_age)
 
 class MCTS(Policy):
-    def __init__(self, env, agent, mask, obs, depth, policy, timelimit):
-        super().__init__(env, agent, mask, obs)
+    def __init__(self, env, agent, mask, obs, card_age, depth, policy, timelimit):
+        super().__init__(env, agent, mask, obs, card_age)
         self.depth = depth
         self.policy = policy
         self.timelimit = timelimit
@@ -67,6 +67,7 @@ class MCTS(Policy):
         restoreMask = deepcopy(self.rule.get_mask())
         restoreAgent = deepcopy(self.rule._agent)
         restoreObs = deepcopy(observation["observation"])
+        restoreCardAge = deepcopy(self.rule.card_age)
 
         # Repeat this until time runs out
         timeout = time.time() + self.timelimit
@@ -95,7 +96,8 @@ class MCTS(Policy):
                 observation, reward, termination, truncation, info = self.policy.rule._env.last()
                 mask = observation["action_mask"]
                 obs = observation["observation"]
-                self.policy.update(self.policy.rule._env, self.policy.rule._env.agent_selection, mask, obs) # keep env
+                newCard_age = update_card_age(self.policy.rule.card_age, node.action)
+                self.policy.update(self.policy.rule._env, self.policy.rule._env.agent_selection, mask, obs, newCard_age) # keep env
                 
                 # If leaf node, create children nodes that can later be selected from (explored)
                 if node.is_leaf():
@@ -122,7 +124,8 @@ class MCTS(Policy):
                         elif node.is_leaf():
                             mask = observation["action_mask"]
                             obs = observation["observation"]
-                            self.policy.update(self.policy.rule._env, agent, mask, obs) # keep the environment
+                            newCard_age = update_card_age(self.policy.rule.card_age, node.action)
+                            self.policy.update(self.policy.rule._env, agent, mask, obs, newCard_age) # keep the environment
 
                             action = self.policy.run()
                             self.policy.rule._env.step(action)
@@ -142,8 +145,6 @@ class MCTS(Policy):
                 # return the value of the agent at the end of the simulation (time ran out, get rewards)
                 return self.policy.rule._env._cumulative_rewards[restoreAgent]
             simulation_result = _simulation(chosen_node, self.depth, timeout)
-            # Restore starting environment
-            self.policy.rule._env = restoreEnv
             # print("Finished simulation.", simulation_result)
 
             # 4. Backpropagate value
@@ -156,7 +157,10 @@ class MCTS(Policy):
                     node = node.parent
             _backpropagation(chosen_node, simulation_result)
             # print("Backpropagation is done.")
-            self.policy.update(restoreEnv, restoreAgent, restoreMask, restoreObs)
+
+            # Restore starting environment
+            self.policy.update(restoreEnv, restoreAgent, restoreMask, restoreObs, restoreCardAge)
+
             # Prematurely end the loop if n total simulations have been done
             if rootNode.ni >= self.MAX_SIMULATIONS:
                 # print("Reached the arbitrary maximum number of simulations")
@@ -169,19 +173,19 @@ class MCTS(Policy):
         return best.action
 
 class MCS_LegalRandom(MCTS):
-    def __init__(self, env, agent, mask, obs):
+    def __init__(self, env, agent, mask, obs, card_age):
         depth = 1
         timelimit = 1 # seconds
         policy = LegalRandom(env, agent, mask, obs)
-        super().__init__(env, agent, mask, obs, depth, policy, timelimit)
+        super().__init__(env, agent, mask, obs, card_age, depth, policy, timelimit)
 
     def run(self):
         # call the super class run method
         return super().run()
 
 class Flawed(Policy):
-    def __init__(self, env, agent, mask, obs):
-        super().__init__(env, agent, mask, obs)
+    def __init__(self, env, agent, mask, obs, card_age):
+        super().__init__(env, agent, mask, obs, card_age)
 
     def run(self):
         # it first tries PlaySafeCard, PlayProbablySafeCard(0.25), TellRandomly, OsawaDiscard, then DiscardOldestFirst, then DiscardRandomly
@@ -205,8 +209,8 @@ class Flawed(Policy):
             return self.rule.discard_randomly()
 
 class PlayerInput(Policy):
-    def __init__(self, env, agent, mask, obs):
-        super().__init__(env, agent, mask, obs)
+    def __init__(self, env, agent, mask, obs, card_age):
+        super().__init__(env, agent, mask, obs, card_age)
 
     def run(self):
         # print the legal action mask of the agent
@@ -215,16 +219,16 @@ class PlayerInput(Policy):
         return int(input("Enter your move: "))
 
 class LegalRandom(Policy):
-    def __init__(self, env, agent, mask, obs):
-        super().__init__(env, agent, mask, obs)
+    def __init__(self, env, agent, mask, obs, card_age):
+        super().__init__(env, agent, mask, obs, card_age)
 
     def run(self):
         return self.rule._env.action_space(self.rule._agent).sample(self.rule._mask)
 
 # TODO #8 Piers 
 class Piers(Policy):
-    def __init__(self, env, agent, mask, obs):
-        super().__init__(env, agent, mask, obs)
+    def __init__(self, env, agent, mask, obs, card_age):
+        super().__init__(env, agent, mask, obs, card_age)
 
     def run(self):
         if sum(self.rule._obs_remaining_life_tokens) > 1 and sum(self.rule._obs_unary_remaining_deck)\
@@ -257,8 +261,8 @@ class Piers(Policy):
             return self.rule.discard_random()
 
 class IGGI(Policy):
-    def __init__(self, env, agent, mask, obs):
-        super().__init__(env, agent, mask, obs)
+    def __init__(self, env, agent, mask, obs, card_age):
+        super().__init__(env, agent, mask, obs, card_age)
 
     def run(self):
         # it first tries PlayIfCertain, then PlaySafeCard, then TellAnyoneAboutUsefulCard, then OsawaDiscard, then DiscardOldestFirst

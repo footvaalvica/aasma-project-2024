@@ -1,5 +1,4 @@
 from pettingzoo.classic import hanabi_v5
-from pettingzoo.utils import wrappers
 
 class EnvWrapper(hanabi_v5.raw_env):
     def __init__(self, **kwargs):
