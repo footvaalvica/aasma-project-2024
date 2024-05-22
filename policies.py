@@ -30,7 +30,7 @@ class Policy:
 
     # calculate the score based on the firework info
     def calculate_score(self):
-        score = 1+
+        score = 1
         for firework in self.rule._obs_firework_info:
             score += sum(firework)
         return score
