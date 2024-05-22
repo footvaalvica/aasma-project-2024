@@ -4,9 +4,6 @@ from policies import *
 import csv
 import os
 
-# Generate x amount of seeds for each configuration
-seeds = []
-
 # delete the results file if it exists
 try:
     os.remove("results.csv")
@@ -18,7 +15,23 @@ with open('results.csv', mode='w') as results_file:
     results_writer = csv.writer(results_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
     results_writer.writerow(["Policy 1", "Policy 2", "Score", "Number of actions taken", "Remaining information tokens"])
 
-seeds = [randint(0, 1000) for i in range(20)]
+# If you want to replay a match, you can copy the action history from the console and paste it here
+history = []
+
+# Policies' whitelist and blacklist 
+whitelist = ['MCTS_IGGI']
+blacklist = ['MCTS', 'PlayerInput', 'Policy', 'LegalRandom', 'MCS_LegalRandom', 'IGGI', 'Piers'] # Policies NOT to run!!
+
+HARDSEEDS = [13, 87, 95, 10, 42]
+seeds = []
+# Generate x amount of seeds like so, python tests.py 10 -> generates 10 seeds
+if len(sys.argv) > 1:
+    len = int(sys.argv[1])
+    new_seeds = []
+    for i in range(len):
+        seeds.append(randint(0, 1000))
+else: # otherwise use hardcoded seeds
+    seeds = HARDSEEDS
 
 # Get all policies under "policies" module
 def find_subclasses(module, clazz, blacklist=[]):
@@ -28,8 +41,6 @@ def find_subclasses(module, clazz, blacklist=[]):
                 if inspect.isclass(cls) and name not in blacklist
                 and issubclass(cls, clazz)
     ]
-    
-blacklist = ['MCTS', 'PlayerInput', 'Policy'] # Policies NOT to run!!
 policy_classes = find_subclasses(sys.modules['policies'], Policy, blacklist)
 
 # Function to run a match between two policies given a seed
@@ -52,60 +63,6 @@ def run_match(policy1, policy2, seed):
             action = None
             if agent == "player_0":
                 print("Game over")
-                print("""
-                                ...,?77??!~~~~!???77?<~.... 
-                            ..?7`                           `7!.. 
-                        .,=`          ..~7^`   I                  ?1. 
-        ........  ..^            ?`  ..?7!1 .               ...??7 
-        .        .7`        .,777.. .I.    . .!          .,7! 
-        ..     .?         .^      .l   ?i. . .`       .,^ 
-        b    .!        .= .?7???7~.     .>r .      .= 
-        .,.?4         , .^         1        `     4... 
-            J   ^         ,            5       `         ?<. 
-        .%.7;         .`     .,     .;                   .=. 
-        .+^ .,       .%      MML     F       .,             ?, 
-            P   ,,      J      .MMN     F        6               4. 
-            l    d,    ,       .MMM!   .t        ..               ,, 
-            ,    JMa..`         MMM`   .         .!                .; 
-            r   .M#            .M#   .%  .      .~                 ., 
-        dMMMNJ..!                 .P7!  .>    .         .         ,, 
-        .WMMMMMm  ?^..       ..,?! ..    ..   ,  Z7`        `?^..  ,, 
-            ?THB3       ?77?!        .Yr  .   .!   ?,              ?^C 
-                ?,                   .,^.` .%  .^      5. 
-                7,          .....?7     .^  ,`        ?. 
-                    `<.                 .= .`'           1 
-                    ....dn... ... ...,7..J=!7,           ., 
-                ..=     G.,7  ..,o..  .?    J.           F 
-            .J.  .^ ,,,t  ,^        ?^.  .^  `?~.      F 
-            r %J. $    5r J             ,r.1      .=.  .% 
-            r .77=?4.    ``,     l ., 1  .. <.       4., 
-            .$..    .X..   .n..  ., J. r .`  J.       `' 
-            .?`  .5        `` .%   .% .' L.'    t 
-            ,. ..1JL          .,   J .$.?`      . 
-                    1.          .=` ` .J7??7<.. .; 
-                    JS..    ..^      L        7.: 
-                    `> ..       J.  4. 
-                        +   r `t   r ~=..G. 
-                        =   $  ,.  J 
-                        2   r   t  .; 
-                .,7!  r   t`7~..  j.. 
-                j   7~L...$=.?7r   r ;?1. 
-                8.      .=    j ..,^   .. 
-                r        G              . 
-                .,7,        j,           .>=. 
-            .J??,  `T....... %             .. 
-        ..^     <.  ~.    ,.             .D 
-        .?`        1   L     .7.........?Ti..l 
-    ,`           L  .    .%    .`!       `j, 
-    .^             .  ..   .`   .^  .?7!?7+. 1 
-    .`              .  .`..`7.  .^  ,`      .i.; 
-    .7<..........~<<3?7!`    4. r  `          G% 
-                            J.` .!           % 
-                                JiJ           .` 
-                                .1.         J 
-                                    ?1.     .'         
-                                        7<..%
-    """)
                 # write the score to another row in the csv file
                 with open('results.csv', mode='a') as results_file:
                     results_writer = csv.writer(results_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
@@ -130,12 +87,38 @@ def run_match(policy1, policy2, seed):
 
         env.step(action)
 
-# Get each pair combination of agents (policies)
-for i in range(len(policy_classes)):
-    for j in range(len(policy_classes)):
-        for seed in seeds:
-            try:
-                run_match(policy_classes[i], policy_classes[j], seed)
-            except:
-                seed = randint(0, 1000)
-                run_match(policy_classes[j], policy_classes[i], seed)
+# Function to replay a match given an action history
+def replay_match(action_history, seed=42):
+    env = EnvWrapper(colors=5, ranks=5, players=2, hand_size=5, max_information_tokens=8, max_life_tokens=3, observation_type='card_knowledge', render_mode='human')
+    env.reset(seed=seed)
+    env.render()
+    cards_age = {}
+    for i in range(env.num_agents):
+        cards_age_key = f"player_{i}"
+        cards_age[cards_age_key] = [0, 0, 0, 0, 0]
+
+    for agent in env.agent_iter():
+        observation, reward, termination, truncation, info = env.last()
+        card_age = cards_age[agent]
+        if termination or truncation:
+            action = None
+            print("Game over")
+        else:
+            mask = observation["action_mask"]
+            obs = observation["observation"]
+
+            action = action_history.pop(0)
+            print(f"Agent {agent} chose action {action}")
+            env.action_history.append(action)
+            cards_age[agent] = update_card_age(card_age, action)
+
+        env.step(action)
+
+# replay_match(history, seed=12) 
+for policy1 in policy_classes:
+    if policy1.__name__ not in whitelist:
+        continue
+    for policy2 in policy_classes:
+        # for seed in seeds:
+        #    run_match(policy1, policy2, seed)
+        run_match(policy1, policy2, seeds[0])
