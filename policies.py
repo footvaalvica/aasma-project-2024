@@ -13,10 +13,10 @@ def copy_env(env):
     new_env.reset(env.seed)
     actionCount = 0
     for agent in new_env.agent_iter():
-        new_env.step(hist[actionCount])
-        actionCount += 1
         if actionCount >= len(hist):
             break
+        new_env.step(hist[actionCount])
+        actionCount += 1
     new_env.action_history = copy(hist)
     return new_env
 
@@ -37,6 +37,12 @@ class Policy:
             firework = list(firework)
             score += firework.index(1) + 1 if 1 in firework else 0
         return score
+
+    def get_information_tokens(self):
+        return sum(self.rule._obs_remaining_info_tokens)
+
+    def get_life_tokens(self):
+        return self.rule._obs_remaining_life_tokens
 
 class MCTS(Policy):
     def __init__(self, env, agent, mask, obs, card_age, depth, policy, timelimit):
@@ -200,22 +206,22 @@ class Flawed(Policy):
     def run(self):
         # it first tries PlaySafeCard, PlayProbablySafeCard(0.25), TellRandomly, OsawaDiscard, then DiscardOldestFirst, then DiscardRandomly
         if self.rule.play_safe_card() is not None:
-            print("I am playing safe card")
+            # print("I am playing safe card")
             return self.rule.play_safe_card()
         elif self.rule.play_probably_safe_card(0.25) is not None:
-            print("I am playing probably safe card with a probability of 0.25")
+            # print("I am playing probably safe card with a probability of 0.25")
             return self.rule.play_probably_safe_card(0.25)
         elif self.rule.tell_random() is not None:
-            print("I am telling randomly")
+            # print("I am telling randomly")
             return self.rule.tell_random()
         elif self.rule.osawa_discard() is not None:
-            print("I am osawa discarding")
+            # print("I am osawa discarding")
             return self.rule.osawa_discard()
         elif self.rule.discard_oldest_first() is not None:
-            print("I am discarding oldest first")
+            # print("I am discarding oldest first")
             return self.rule.discard_oldest_first()
         else:
-            print("I am discarding randomly")
+            # print("I am discarding randomly")
             return self.rule.discard_randomly()
 
 class PlayerInput(Policy):
@@ -243,31 +249,31 @@ class Piers(Policy):
     def run(self):
         if sum(self.rule._obs_remaining_life_tokens) > 1 and sum(self.rule._obs_unary_remaining_deck)\
         and self.rule.play_probably_safe_card(0.0) is not None:
-            print("I am playing probabuly safe card (0.0)")
+            # print("I am playing probabuly safe card (0.0)")
             return self.rule.play_probably_safe_card(0.0)
         elif self.rule.play_safe_card() is not None:
-            print("I am playing safe card")
+            # print("I am playing safe card")
             return self.rule.play_safe_card()
         elif sum(self.rule._obs_remaining_life_tokens) > 1 and self.rule.play_probably_safe_card(0.6) is not None:
-            print("I am playing probabuly safe card (0.6)")
+            # print("I am playing probabuly safe card (0.6)")
             return self.rule.play_probably_safe_card(0.6)
         elif self.rule.tell_anyone_about_useful_card() is not None:
-            print("I am telling anyone about useful card")
+            # print("I am telling anyone about useful card")
             return self.rule.tell_anyone_about_useful_card()
         elif sum(self.rule._obs_remaining_info_tokens) < 4  and self.rule.tell_dispensable() is not None:
-            print("I am telling next player about dispensable card")
+            # print("I am telling next player about dispensable card")
             return self.rule.tell_dispensable()
         elif self.rule.osawa_discard() is not None:
-            print("I am osawa discarding")
+            # print("I am osawa discarding")
             return self.rule.osawa_discard()
         elif self.rule.discard_oldest_first() is not None:
-            print("I am discarding older first")
+            # print("I am discarding older first")
             return self.rule.discard_oldest_first()
         elif self.rule.tell_random() is not None:
-            print("I am telling randomly")
+            # print("I am telling randomly")
             return self.rule.tell_random()
         else:
-            print("I am discarding randomly")
+            # print("I am discarding randomly")
             return self.rule.discard_random()
 
 class IGGI(Policy):
@@ -277,24 +283,45 @@ class IGGI(Policy):
     def run(self):
         # it first tries PlayIfCertain, then PlaySafeCard, then TellAnyoneAboutUsefulCard, then OsawaDiscard, then DiscardOldestFirst
         if self.rule.play_if_certain() is not None:
-            print("I am playing if certain")
+            # print("I am playing if certain")
             return self.rule.play_if_certain()
         elif self.rule.play_safe_card() is not None:
-            print("I am playing safe card")
+            # print("I am playing safe card")
             return self.rule.play_safe_card()
         elif self.rule.tell_anyone_about_useful_card() is not None:
-            print("I am telling anyone about useful card")
+            # print("I am telling anyone about useful card")
             return self.rule.tell_anyone_about_useful_card()
         elif self.rule.osawa_discard() is not None:
-            print("I am osawa discarding")
+            # # print("I am osawa discarding")
             return self.rule.osawa_discard()
         elif self.rule.discard_oldest_first() is not None:
-            print("I am discarding oldest first")
+            # # print("I am discarding oldest first")
             return self.rule.discard_oldest_first()
         else:
             # tells randomly
-            print("I am telling randomly")
+            # # print("I am telling randomly")
             return self.rule.tell_random()
         
+class MCTS_Piers(MCTS):
+    def __init__(self, env, agent, mask, obs, card_age):
+        depth = 4
+        timelimit = 5 # seconds
+        policy = Piers(env, agent, mask, obs, card_age)
+        super().__init__(env, agent, mask, obs, card_age, depth, policy, timelimit)
+
+    def run(self):
+        # call the super class run method
+        return super().run()
+    
+class MCTS_IGGI(MCTS):
+    def __init__(self, env, agent, mask, obs, card_age):
+        depth = 4
+        timelimit = 5 # seconds
+        policy = IGGI(env, agent, mask, obs, card_age)
+        super().__init__(env, agent, mask, obs, card_age, depth, policy, timelimit)
+
+    def run(self):
+        # call the super class run method
+        return super().run()
        
 # TODO more

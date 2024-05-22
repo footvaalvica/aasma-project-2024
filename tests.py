@@ -1,18 +1,24 @@
 from random import randint
 import sys, inspect
 from policies import *
+import csv
+import os
 
 # Generate x amount of seeds for each configuration
-HARDSEEDS = [13, 87, 95, 10, 42]
 seeds = []
 
-if len(sys.argv) > 1:
-    len = int(sys.argv[1])
-    new_seeds = []
-    for i in range(len):
-        seeds.append(randint(0, 1000))
-else:
-    seeds = HARDSEEDS
+# delete the results file if it exists
+try:
+    os.remove("results.csv")
+except:
+    pass
+
+# write the first line of the csv that will contain the headers
+with open('results.csv', mode='w') as results_file:
+    results_writer = csv.writer(results_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+    results_writer.writerow(["Policy 1", "Policy 2", "Score", "Number of actions taken", "Remaining information tokens"])
+
+seeds = [randint(0, 1000) for i in range(20)]
 
 # Get all policies under "policies" module
 def find_subclasses(module, clazz, blacklist=[]):
@@ -29,6 +35,7 @@ policy_classes = find_subclasses(sys.modules['policies'], Policy, blacklist)
 # Function to run a match between two policies given a seed
 def run_match(policy1, policy2, seed):
     print(f"Running match between {policy1.__name__} and {policy2.__name__} with seed {seed}")
+
     # Run the game
     env = EnvWrapper(colors=5, ranks=5, players=2, hand_size=5, max_information_tokens=8, max_life_tokens=3, observation_type='card_knowledge', render_mode='human')
     env.reset(seed=seed)
@@ -43,61 +50,66 @@ def run_match(policy1, policy2, seed):
         card_age = cards_age[agent]
         if termination or truncation:
             action = None
-            print("Game over")
-            print("""
-                             ...,?77??!~~~~!???77?<~.... 
-                        ..?7`                           `7!.. 
-                    .,=`          ..~7^`   I                  ?1. 
-       ........  ..^            ?`  ..?7!1 .               ...??7 
-      .        .7`        .,777.. .I.    . .!          .,7! 
-      ..     .?         .^      .l   ?i. . .`       .,^ 
-       b    .!        .= .?7???7~.     .>r .      .= 
-       .,.?4         , .^         1        `     4... 
-        J   ^         ,            5       `         ?<. 
-       .%.7;         .`     .,     .;                   .=. 
-       .+^ .,       .%      MML     F       .,             ?, 
-        P   ,,      J      .MMN     F        6               4. 
-        l    d,    ,       .MMM!   .t        ..               ,, 
-        ,    JMa..`         MMM`   .         .!                .; 
-         r   .M#            .M#   .%  .      .~                 ., 
-       dMMMNJ..!                 .P7!  .>    .         .         ,, 
-       .WMMMMMm  ?^..       ..,?! ..    ..   ,  Z7`        `?^..  ,, 
-          ?THB3       ?77?!        .Yr  .   .!   ?,              ?^C 
-            ?,                   .,^.` .%  .^      5. 
-              7,          .....?7     .^  ,`        ?. 
-                `<.                 .= .`'           1 
-                ....dn... ... ...,7..J=!7,           ., 
-             ..=     G.,7  ..,o..  .?    J.           F 
-           .J.  .^ ,,,t  ,^        ?^.  .^  `?~.      F 
-          r %J. $    5r J             ,r.1      .=.  .% 
-          r .77=?4.    ``,     l ., 1  .. <.       4., 
-          .$..    .X..   .n..  ., J. r .`  J.       `' 
-        .?`  .5        `` .%   .% .' L.'    t 
-        ,. ..1JL          .,   J .$.?`      . 
-                1.          .=` ` .J7??7<.. .; 
-                 JS..    ..^      L        7.: 
-                   `> ..       J.  4. 
-                    +   r `t   r ~=..G. 
-                    =   $  ,.  J 
-                    2   r   t  .; 
-              .,7!  r   t`7~..  j.. 
-              j   7~L...$=.?7r   r ;?1. 
-               8.      .=    j ..,^   .. 
-              r        G              . 
-            .,7,        j,           .>=. 
-         .J??,  `T....... %             .. 
-      ..^     <.  ~.    ,.             .D 
-    .?`        1   L     .7.........?Ti..l 
-   ,`           L  .    .%    .`!       `j, 
- .^             .  ..   .`   .^  .?7!?7+. 1 
-.`              .  .`..`7.  .^  ,`      .i.; 
-.7<..........~<<3?7!`    4. r  `          G% 
-                          J.` .!           % 
-                            JiJ           .` 
-                              .1.         J 
-                                 ?1.     .'         
-                                     7<..%
-""")
+            if agent == "player_0":
+                print("Game over")
+                print("""
+                                ...,?77??!~~~~!???77?<~.... 
+                            ..?7`                           `7!.. 
+                        .,=`          ..~7^`   I                  ?1. 
+        ........  ..^            ?`  ..?7!1 .               ...??7 
+        .        .7`        .,777.. .I.    . .!          .,7! 
+        ..     .?         .^      .l   ?i. . .`       .,^ 
+        b    .!        .= .?7???7~.     .>r .      .= 
+        .,.?4         , .^         1        `     4... 
+            J   ^         ,            5       `         ?<. 
+        .%.7;         .`     .,     .;                   .=. 
+        .+^ .,       .%      MML     F       .,             ?, 
+            P   ,,      J      .MMN     F        6               4. 
+            l    d,    ,       .MMM!   .t        ..               ,, 
+            ,    JMa..`         MMM`   .         .!                .; 
+            r   .M#            .M#   .%  .      .~                 ., 
+        dMMMNJ..!                 .P7!  .>    .         .         ,, 
+        .WMMMMMm  ?^..       ..,?! ..    ..   ,  Z7`        `?^..  ,, 
+            ?THB3       ?77?!        .Yr  .   .!   ?,              ?^C 
+                ?,                   .,^.` .%  .^      5. 
+                7,          .....?7     .^  ,`        ?. 
+                    `<.                 .= .`'           1 
+                    ....dn... ... ...,7..J=!7,           ., 
+                ..=     G.,7  ..,o..  .?    J.           F 
+            .J.  .^ ,,,t  ,^        ?^.  .^  `?~.      F 
+            r %J. $    5r J             ,r.1      .=.  .% 
+            r .77=?4.    ``,     l ., 1  .. <.       4., 
+            .$..    .X..   .n..  ., J. r .`  J.       `' 
+            .?`  .5        `` .%   .% .' L.'    t 
+            ,. ..1JL          .,   J .$.?`      . 
+                    1.          .=` ` .J7??7<.. .; 
+                    JS..    ..^      L        7.: 
+                    `> ..       J.  4. 
+                        +   r `t   r ~=..G. 
+                        =   $  ,.  J 
+                        2   r   t  .; 
+                .,7!  r   t`7~..  j.. 
+                j   7~L...$=.?7r   r ;?1. 
+                8.      .=    j ..,^   .. 
+                r        G              . 
+                .,7,        j,           .>=. 
+            .J??,  `T....... %             .. 
+        ..^     <.  ~.    ,.             .D 
+        .?`        1   L     .7.........?Ti..l 
+    ,`           L  .    .%    .`!       `j, 
+    .^             .  ..   .`   .^  .?7!?7+. 1 
+    .`              .  .`..`7.  .^  ,`      .i.; 
+    .7<..........~<<3?7!`    4. r  `          G% 
+                            J.` .!           % 
+                                JiJ           .` 
+                                .1.         J 
+                                    ?1.     .'         
+                                        7<..%
+    """)
+                # write the score to another row in the csv file
+                with open('results.csv', mode='a') as results_file:
+                    results_writer = csv.writer(results_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+                    results_writer.writerow([policy1.__name__, policy2.__name__,policy.calculate_score(), len(env.action_history), int(policy.get_information_tokens())])
         else:
             mask = observation["action_mask"]
             obs = observation["observation"]
@@ -122,5 +134,8 @@ def run_match(policy1, policy2, seed):
 for i in range(len(policy_classes)):
     for j in range(len(policy_classes)):
         for seed in seeds:
-            run_match(policy_classes[i], policy_classes[j], seed)
-
+            try:
+                run_match(policy_classes[i], policy_classes[j], seed)
+            except:
+                seed = randint(0, 1000)
+                run_match(policy_classes[j], policy_classes[i], seed)
