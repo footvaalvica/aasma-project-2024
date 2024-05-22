@@ -34,10 +34,18 @@ for agent in env.agent_iter():
         else:
             policy = IGGI(env, agent, mask, obs, card_age)
         action = policy.run()
-        print("action being played is")
-        print(action)
+        print(f"action being played is {action}")
         env.action_history.append(action)
 
+        # check if action results in an error
+        if agent == "player_0":
+            player_cards = env.observe("player_1")["observation"][0:125]
+        else:
+            player_cards = env.observe("player_0")["observation"][0:125]
+        fireworks = obs[167:192]
+        env.errors += update_errors(player_cards, fireworks, action)
+
+        print(f"errors are {env.errors}")
         # need to update cards after every play
         cards_age[agent] = update_card_age(card_age, action)
 

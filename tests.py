@@ -66,7 +66,7 @@ def run_match(policy1, policy2, seed):
                 # write the score to another row in the csv file
                 with open('results.csv', mode='a') as results_file:
                     results_writer = csv.writer(results_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-                    results_writer.writerow([policy1.__name__, policy2.__name__,policy.calculate_score(), len(env.action_history), int(policy.get_information_tokens())])
+                    results_writer.writerow([policy1.__name__, policy2.__name__,policy.calculate_score(), env.errors, len(env.action_history), int(policy.get_information_tokens())])
         else:
             mask = observation["action_mask"]
             obs = observation["observation"]
@@ -81,6 +81,13 @@ def run_match(policy1, policy2, seed):
             print(f"Agent {agent} chose action {action}")
             env.action_history.append(action)
             cards_age[agent] = update_card_age(card_age, action)
+
+            if agent == "player_0":
+                player_cards = env.observe("player_1")["observation"][0:125]
+            else:
+                player_cards = env.observe("player_0")["observation"][0:125]
+            fireworks = obs[167:192]
+            env.errors += update_errors(player_cards, fireworks, action)
 
             # print the hanabi score
             print(f"Hanabi score: {policy.calculate_score()}")
@@ -111,6 +118,13 @@ def replay_match(action_history, seed=42):
             print(f"Agent {agent} chose action {action}")
             env.action_history.append(action)
             cards_age[agent] = update_card_age(card_age, action)
+
+            if agent == "player_0":
+                player_cards = env.observe("player_1")["observation"][0:125]
+            else:
+                player_cards = env.observe("player_0")["observation"][0:125]
+            fireworks = obs[167:192]
+            env.errors += update_errors(player_cards, fireworks, action)
 
         env.step(action)
 
