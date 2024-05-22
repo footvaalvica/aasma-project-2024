@@ -3,6 +3,7 @@ import sys, inspect
 from policies import *
 import csv
 import os
+import sys
 
 # delete the results file if it exists
 try:
@@ -13,14 +14,14 @@ except:
 # write the first line of the csv that will contain the headers
 with open('results.csv', mode='w') as results_file:
     results_writer = csv.writer(results_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-    results_writer.writerow(["Policy 1", "Policy 2", "Score", "Number of actions taken", "Remaining information tokens", "Remaining life tokens"])
+    results_writer.writerow(["Policy 1", "Policy 2", "Score", "Number of actions taken", "Remaining information tokens"])
 
 # If you want to replay a match, you can copy the action history from the console and paste it here
 history = []
 
 # Policies' whitelist and blacklist 
 whitelist = ['MCTS_IGGI']
-blacklist = ['MCTS', 'PlayerInput', 'Policy', 'LegalRandom', 'MCS_LegalRandom', 'IGGI', 'Piers'] # Policies NOT to run!!
+blacklist = ['MCTS', 'PlayerInput', 'Policy'] # Policies NOT to run!!
 
 HARDSEEDS = [13, 87, 95, 10, 42]
 seeds = []
@@ -63,7 +64,9 @@ def run_match(policy1, policy2, seed):
             action = None
             if agent == "player_0":
                 print("Game over")
+                print_random_ascii_art()
                 # write the score to another row in the csv file
+                # # policy.update(env,agent,mask,obs,card_age)
                 with open('results.csv', mode='a') as results_file:
                     results_writer = csv.writer(results_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
                     results_writer.writerow([policy1.__name__, policy2.__name__,policy.calculate_score(), len(env.action_history), int(policy.get_information_tokens())])
