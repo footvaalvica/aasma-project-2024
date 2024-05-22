@@ -44,6 +44,11 @@ class Policy:
     def get_life_tokens(self):
         return self.rule._obs_remaining_life_tokens
 
+    def calculate_weighted_score(self, weights=[10, 1, 3]):
+        actual_score = self.calculate_score()
+        return actual_score * weights[0] + sum(self.rule._obs_remaining_info_tokens) * \
+            weights[1] + sum(self.rule._obs_remaining_life_tokens) * weights[2]
+
 class MCTS(Policy):
     def __init__(self, env, agent, mask, obs, card_age, depth, policy, timelimit):
         super().__init__(env, agent, mask, obs, card_age)
@@ -115,12 +120,15 @@ class MCTS(Policy):
                 newCard_age = update_card_age(self.policy.rule.card_age, node.action)
                 self.policy.update(self.policy.rule._env, self.policy.rule._env.agent_selection, mask, obs, newCard_age) # keep env
                 
+                if termination or truncation:
+                    # game ended, return 1 to signal game over
+                    return 1
                 # If leaf node, create children nodes that can later be selected from (explored)
                 if node.is_leaf():
                     node.children = [self.Node(action, self.policy.rule._env, node) for action in range(self.policy.rule._env.action_space(self.policy.rule._env.agent_selection).n) if mask[action]]
                     self.policy.rule._env = copy_env(self.policy.rule._env) # Don't mess with children states during simulation
-                
-            _expansion(chosen_node)
+                return 0
+            ret = _expansion(chosen_node)
             # print("Finish Expansion")
 
             # 3. Simulation
@@ -128,13 +136,15 @@ class MCTS(Policy):
             # print("Do simulation")
             def _simulation(node, depth, timeout):
                 cur_depth = depth
+                done = False
                 while time.time() < timeout: 
                     for agent in self.policy.rule._env.agent_iter():
                         observation, reward, termination, truncation, info = self.policy.rule._env.last()
                         # If the game is over, return the value of the game
-                        if termination or truncation: # what the fuck is truncation
-                            # print("Game is over")
-                            return self.policy.rule._env._cumulative_rewards[restoreAgent]
+                        if termination or truncation or cur_depth == 0:
+                            # print("Game is over") or print("Depth is 0")
+                            done = True
+                            break
                         # If the game is not over, apply the policy to get the next move
                         # and continue the simulation
                         elif node.is_leaf():
@@ -147,20 +157,27 @@ class MCTS(Policy):
                             self.policy.rule._env.step(action)
                             # Don't need to alter action history as this wont ever be copied
                             cur_depth -= 1
+                            break
                         else:
                             # print("Unexpected non-leaf node during simulation, \
                             #      investigate situation")
                             cur_depth -= 1
                             exit(0)
-                        if cur_depth == 0:
-                            # print("Depth is 0")
-                            # return the value of the agent at the end of the simulation (depth ran out, get rewards)
-                            return self.policy.rule._env._cumulative_rewards[restoreAgent]
+                    if done:
+                        break
                 # if time.time() >= timeout:
                     # print("Time is up")
                 # return the value of the agent at the end of the simulation (time ran out, get rewards)
-                return self.policy.rule._env._cumulative_rewards[restoreAgent]
-            simulation_result = _simulation(chosen_node, self.depth, timeout)
+                observation, reward, termination, truncation, info = self.policy.rule._env.last()
+                mask = observation["action_mask"]
+                obs = observation["observation"]
+                self.policy.update(self.policy.rule._env, self.policy.rule._env.agent_selection, mask, obs, self.policy.rule.card_age) # keep the environment
+                return self.policy.calculate_weighted_score() # self.policy.rule._env._cumulative_rewards[restoreAgent]
+
+            if ret == 0:
+                simulation_result = _simulation(chosen_node, self.depth, timeout)
+            else:
+                simulation_result = self.policy.calculate_score()
             # print("Finished simulation.", simulation_result)
 
             # 4. Backpropagate value
@@ -304,19 +321,19 @@ class IGGI(Policy):
         
 class MCTS_Piers(MCTS):
     def __init__(self, env, agent, mask, obs, card_age):
-        depth = 4
-        timelimit = 5 # seconds
+        depth = 1
+        timelimit = 1 # seconds
         policy = Piers(env, agent, mask, obs, card_age)
         super().__init__(env, agent, mask, obs, card_age, depth, policy, timelimit)
 
     def run(self):
         # call the super class run method
         return super().run()
-    
+
 class MCTS_IGGI(MCTS):
     def __init__(self, env, agent, mask, obs, card_age):
-        depth = 4
-        timelimit = 5 # seconds
+        depth = 1
+        timelimit = 1 # seconds
         policy = IGGI(env, agent, mask, obs, card_age)
         super().__init__(env, agent, mask, obs, card_age, depth, policy, timelimit)
 
