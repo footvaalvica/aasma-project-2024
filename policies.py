@@ -2,7 +2,6 @@
 
 # from pettingzoo.utils import wrappers, agent_selector
 from utils import *
-from pettingzoo.classic import hanabi_v5
 from rules import *
 from math import sqrt
 from copy import deepcopy, copy
@@ -195,9 +194,9 @@ class Flawed(Policy):
         elif self.rule.play_probably_safe_card(0.25) is not None:
             print("I am playing probably safe card with a probability of 0.25")
             return self.rule.play_probably_safe_card(0.25)
-        elif self.rule.tell_randomly() is not None:
+        elif self.rule.tell_random() is not None:
             print("I am telling randomly")
-            return self.rule.tell_randomly()
+            return self.rule.tell_random()
         elif self.rule.osawa_discard() is not None:
             print("I am osawa discarding")
             return self.rule.osawa_discard()

@@ -1,5 +1,3 @@
-from pettingzoo.classic import hanabi_v5
-
 # import policies.py
 from policies import *
 from utils import *
@@ -30,8 +28,10 @@ for agent in env.agent_iter():
         if agent == "player_0":
             policy = PlayerInput(env, agent, mask, obs, card_age)
         else:
-            policy = LegalRandom(env, agent, mask, obs, card_age)
+            policy = IGGI(env, agent, mask, obs, card_age)
         action = policy.run()
+        print("action being played is")
+        print(action)
         env.action_history.append(action)
 
         # need to update cards after every play
