@@ -16,7 +16,7 @@ except:
 # write the first line of the csv that will contain the headers
 with open('results.csv', mode='w') as results_file:
     results_writer = csv.writer(results_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-    results_writer.writerow(["Policy 1", "Policy 2", "Score", "Number of actions taken", "Remaining information tokens"])
+    results_writer.writerow(["Policy 1", "Policy 2", "Score", "Number of actions taken", "Remaining information tokens", "Remaining life tokens"])
 
 seeds = [randint(0, 1000) for i in range(20)]
 
