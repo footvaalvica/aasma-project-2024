@@ -3,8 +3,6 @@ import numpy as np
 # This file contains the rules for the Hanabi game agent. The rules are implemented as methods of the Rules class. The Rules class is used by the Policy class to generate policies for the agent.
 class Rule:
     
-    
-
     # methods to update the game variables
     def _update_all(self, env, agent, mask, obs):
         def _update_obs(obs):

@@ -30,9 +30,12 @@ class Policy:
 
     # calculate the score based on the firework info
     def calculate_score(self):
-        score = 1
+        score = 0
         for firework in self.rule._obs_firework_info:
-            score += sum(firework)
+            # add the score the index of the first bit set to one if theres is one
+            # convert firework to list to use index method
+            firework = list(firework)
+            score += firework.index(1) + 1 if 1 in firework else 0
         return score
 
 class MCTS(Policy):

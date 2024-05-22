@@ -37,11 +37,13 @@ def run_match(policy1, policy2, seed):
     for i in range(env.num_agents):
         cards_age_key = f"player_{i}"
         cards_age[cards_age_key] = [0, 0, 0, 0, 0]
+    
     for agent in env.agent_iter():
         observation, reward, termination, truncation, info = env.last()
         card_age = cards_age[agent]
         if termination or truncation:
             action = None
+            print("game over go OGFSDJIFJIASLÇDFASDFHA")
         else:
             mask = observation["action_mask"]
             obs = observation["observation"]
