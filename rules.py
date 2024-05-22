@@ -229,7 +229,7 @@ class Rule:
     # goes through every oponents card and checks if it can be played
     def tell_anyone_about_useful_card(self):
         # can't tell if there are no more info tokens
-        if 1 not in self._obs_remaining_life_tokens:
+        if 1 not in self._obs_remaining_info_tokens:
             return None
         
         counter = 0
@@ -260,7 +260,7 @@ class Rule:
     
     def tell_dispensable(self):
         # can't tell if there are no more info tokens
-        if 1 not in self._obs_remaining_life_tokens:
+        if 1 not in self._obs_remaining_info_tokens:
             return None
         
         counter = 0
