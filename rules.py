@@ -3,6 +3,8 @@ import numpy as np
 # This file contains the rules for the Hanabi game agent. The rules are implemented as methods of the Rules class. The Rules class is used by the Policy class to generate policies for the agent.
 class Rule:
     
+    
+
     # methods to update the game variables
     def _update_all(self, env, agent, mask, obs):
         def _update_obs(obs):
@@ -11,56 +13,56 @@ class Rule:
             for i in range(env.num_agents - 1):
                 # Vector of Card X in other player’s hand
                 card1 = obs[it : it+25]
-                print(f"card1 (player {i}): {card1}")
+                # # print(f"card1 (player {i}): {card1}")
                 card2 = obs[it+25 : it+50]
-                print(f"card2 (player {i}): {card2}")
+                # # print(f"card2 (player {i}): {card2}")
                 card3 = obs[it+50 : it+75]
-                print(f"card3 (player {i}): {card3}")
+                # # print(f"card3 (player {i}): {card3}")
                 card4 = obs[it+75 : it+100]
-                print(f"card4 (player {i}): {card4}")
+                # # print(f"card4 (player {i}): {card4}")
                 card5 = obs[it+100 : it+125]
-                print(f"card5 (player {i}): {card5}")
+                # # print(f"card5 (player {i}): {card5}")
                 cards = [card1, card2, card3, card4, card5]
                 self._obs_other_players_hands[f"next_player_{i}"] = cards
                 it = it + 125
 
             # Unary encoding of remaining deck size
             self._obs_unary_remaining_deck = obs[it : it+50]
-            print(f"self._obs_unary_remaining_deck: {self._obs_unary_remaining_deck}")
+            # # print(f"self._obs_unary_remaining_deck: {self._obs_unary_remaining_deck}")
             it = it + 50 - 8 # for some reason, have to go back 8
 
             # Vector of <Color> Firework
             red_vector = obs[it : it+5]
-            print(f"red_vector: {red_vector}")
+            # # print(f"red_vector: {red_vector}")
             yellow_vector = obs[it+5 : it+10]
-            print(f"yellow_vector: {yellow_vector}")
+            # # print(f"yellow_vector: {yellow_vector}")
             green_vector = obs[it+10 : it+15]
-            print(f"green_vector: {green_vector}")
+            # # print(f"green_vector: {green_vector}")
             white_vector = obs[it+15 : it+20]
-            print(f"white_vector: {white_vector}")
+            # # print(f"white_vector: {white_vector}")
             blue_vector = obs[it+20 : it+25]
-            print(f"blue_vector: {blue_vector}")
+            # # print(f"blue_vector: {blue_vector}")
             self._obs_firework_info = [red_vector, yellow_vector, green_vector, white_vector, blue_vector]
             it = it + 25
 
             # Info regarding remaining tokens
             self._obs_remaining_info_tokens = obs[it : it+8]
-            print(f"self._obs_remaining_info_tokens: {self._obs_remaining_info_tokens}")
+            # # print(f"self._obs_remaining_info_tokens: {self._obs_remaining_info_tokens}")
             self._obs_remaining_life_tokens = obs[it+8 : it+11]
-            print(f"self._obs_remaining_life_tokens: {self._obs_remaining_life_tokens}")
+            # # print(f"self._obs_remaining_life_tokens: {self._obs_remaining_life_tokens}")
             it = it + 11
 
             # Info regarding already discarded cards
             discarded_reds = obs[it : it+10]
-            print(f"discarded_reds: {discarded_reds}")
+            # # print(f"discarded_reds: {discarded_reds}")
             discarded_yellows = obs[it+10 : it+20]
-            print(f"discarded_yellows: {discarded_yellows}")
+            # # print(f"discarded_yellows: {discarded_yellows}")
             discarded_greens = obs[it+20 : it+30]
-            print(f"discarded_greens: {discarded_greens}")
+            # # print(f"discarded_greens: {discarded_greens}")
             discarded_whites = obs[it+30 : it+40]
-            print(f"discarded_whites: {discarded_whites}")
+            # # print(f"discarded_whites: {discarded_whites}")
             discarded_blues = obs[it+40 : it+50]
-            print(f"discarded_blues: {discarded_blues}")
+            # # print(f"discarded_blues: {discarded_blues}")
             self._obs_discarded_cards = [discarded_reds, discarded_yellows, discarded_greens, discarded_whites, discarded_blues]
             it = it + 50
 
@@ -77,15 +79,15 @@ class Rule:
 
             # Revealed info about player's cards
             first_card = obs[it : it+35]
-            print(f"first_card: {first_card}")
+            # # print(f"first_card: {first_card}")
             second_card = obs[it+35 : it+70]
-            print(f"second_card: {second_card}")
+            # # print(f"second_card: {second_card}")
             third_card = obs[it+70 : it+105]
-            print(f"third_card: {third_card}")
+            # # print(f"third_card: {third_card}")
             fourth_card = obs[it+105 : it+140]
-            print(f"fourth_card: {fourth_card}")
+            # # print(f"fourth_card: {fourth_card}")
             fifth_card = obs[it+140 : it+175]
-            print(f"fifth_card: {fifth_card}")
+            # # print(f"fifth_card: {fifth_card}")
             self._cards_info = [first_card, second_card, third_card, fourth_card, fifth_card]
             it = it + 175
 
@@ -93,15 +95,15 @@ class Rule:
             self._obs_other_players_cards_info = {}
             for i in range(env.num_agents - 1):
                 card1_info = obs[it : it+35]
-                print(f"card1_info (player {i}): {card1_info}")
+                # # print(f"card1_info (player {i}): {card1_info}")
                 card2_info = obs[it+35 : it+70]
-                print(f"card2_info (player {i}): {card2_info}")
+                # # print(f"card2_info (player {i}): {card2_info}")
                 card3_info = obs[it+70 : it+105]
-                print(f"card3_info (player {i}): {card3_info}")
+                # # print(f"card3_info (player {i}): {card3_info}")
                 card4_info = obs[it+105 : it+140]
-                print(f"card4_info (player {i}): {card4_info}")
+                # # print(f"card4_info (player {i}): {card4_info}")
                 card5_info = obs[it+140 : it+175]
-                print(f"card5_info (player {i}): {card5_info}")
+                # print(f"card5_info (player {i}): {card5_info}")
                 cards_info = [card1_info, card2_info, card3_info, card4_info, card5_info]
                 self._obs_other_players_cards_info[f"next_player_{i}"] = cards_info
                 it = it + 175
@@ -204,6 +206,8 @@ class Rule:
             # now let's check each info individually
             for color_info, firework in zip(color_infos, self._obs_firework_info):
                 firework = firework.tolist()
+                if 1 not in color_info:
+                    continue
                 info_rank = color_info.index(1)
                 current_rank = sum(firework)
                 # if rank of info is the same as sum of firework, then card is playable
@@ -215,8 +219,12 @@ class Rule:
     
     def discard_oldest_first(self):
         # get the oldest card
-        card_ages = self.card_age.tolist()
+        card_ages = self.card_age
         oldest_card = card_ages.index(max(card_ages))
+
+        # if has 8 info tokens, can't tell
+        if sum(self._obs_remaining_info_tokens) == 8:
+            return None
 
         return oldest_card
 
@@ -327,6 +335,8 @@ def check_discard(rule, cards):
             rank_5_infos = discarded_cards[9]
             discard_rank_infos = [rank_1_infos, rank_2_infos, rank_3_infos,
                                     rank_4_infos, np.array(rank_5_infos)]
+            if 1 not in color_info:
+                continue
             max_possible_rank = len(color_info) - color_info[::-1].index(1) - 1 # gets highest 1 from the color_info list
 
             discard = False

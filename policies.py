@@ -28,6 +28,13 @@ class Policy:
         self.rule.card_age = card_age
         self.rule._update_all(env, agent, mask, obs)
 
+    # calculate the score based on the firework info
+    def calculate_score(self):
+        score = 1+
+        for firework in self.rule._obs_firework_info:
+            score += sum(firework)
+        return score
+
 class MCTS(Policy):
     def __init__(self, env, agent, mask, obs, card_age, depth, policy, timelimit):
         super().__init__(env, agent, mask, obs, card_age)
@@ -278,8 +285,13 @@ class IGGI(Policy):
         elif self.rule.osawa_discard() is not None:
             print("I am osawa discarding")
             return self.rule.osawa_discard()
-        else:
+        elif self.rule.discard_oldest_first() is not None:
             print("I am discarding oldest first")
             return self.rule.discard_oldest_first()
+        else:
+            # tells randomly
+            print("I am telling randomly")
+            return self.rule.tell_random()
+        
        
 # TODO more

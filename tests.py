@@ -46,18 +46,25 @@ def run_match(policy1, policy2, seed):
             mask = observation["action_mask"]
             obs = observation["observation"]
             if agent == "player_0":
-                policy = policy1(env, agent, mask, obs, card_age)
+                policy = policy1(env, agent, mask, obs, card_age) 
+                # get policy name and print it
+                print(f"Policy {policy1.__name__} is playing against {policy2.__name__}")
             else:
                 policy = policy2(env, agent, mask, obs, card_age)
+                print(f"Policy {policy2.__name__} is playing against {policy1.__name__}")
             action = policy.run()
             print(f"Agent {agent} chose action {action}")
             env.action_history.append(action)
             cards_age[agent] = update_card_age(card_age, action)
+
+            # print the hanabi score
+            print(f"Hanabi score: {policy.calculate_score()}")
+
         env.step(action)
 
 # Get each pair combination of agents (policies)
 for i in range(len(policy_classes)):
-    for j in range(i+1, len(policy_classes)):
+    for j in range(len(policy_classes)):
         for seed in seeds:
             run_match(policy_classes[i], policy_classes[j], seed)
 
