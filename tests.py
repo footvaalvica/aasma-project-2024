@@ -136,8 +136,8 @@ def replay_match(action_history, seed=42):
 # replay_match(history, seed=12)
 
 for policy1 in policy_classes:
-    if policy1.__name__ not in whitelist:
-        continue
+    # # if policy1.__name__ not in whitelist:
+    # #     continue
     for policy2 in policy_classes:
         for seed in seeds:
            run_match(policy1, policy2, seed)
