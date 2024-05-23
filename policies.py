@@ -321,8 +321,8 @@ class IGGI(Policy):
         
 class MCTS_Piers(MCTS):
     def __init__(self, env, agent, mask, obs, card_age):
-        depth = 1
-        timelimit = 1 # seconds
+        depth = 4
+        timelimit = 2 # seconds
         policy = Piers(env, agent, mask, obs, card_age)
         super().__init__(env, agent, mask, obs, card_age, depth, policy, timelimit)
 
@@ -332,8 +332,8 @@ class MCTS_Piers(MCTS):
 
 class MCTS_IGGI(MCTS):
     def __init__(self, env, agent, mask, obs, card_age):
-        depth = 1
-        timelimit = 1 # seconds
+        depth = 4
+        timelimit = 2 # seconds
         policy = IGGI(env, agent, mask, obs, card_age)
         super().__init__(env, agent, mask, obs, card_age, depth, policy, timelimit)
 

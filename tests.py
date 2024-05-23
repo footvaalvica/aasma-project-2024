@@ -4,6 +4,7 @@ from policies import *
 import csv
 import os
 import sys
+import multiprocessing
 
 # delete the results file if it exists
 try:
@@ -135,10 +136,13 @@ def replay_match(action_history, seed=42):
 
 # replay_match(history, seed=12)
 
-for policy1 in policy_classes:
-    # # if policy1.__name__ not in whitelist:
-    # #     continue
-    for policy2 in policy_classes:
-        for seed in seeds:
-           run_match(policy1, policy2, seed)
+def run_match_wrapper(args):
+    policy1, policy2, seed = args
+    run_match(policy1, policy2, seed)
+
+if __name__ == '__main__':
+    pool = multiprocessing.Pool()
+    pool.map(run_match_wrapper, [(policy1, policy2, seed) for policy1 in policy_classes for policy2 in policy_classes for seed in seeds])
+    pool.close()
+    pool.join()
         # # run_match(policy1, policy2, seeds[0])
