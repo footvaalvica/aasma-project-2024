@@ -1,4 +1,5 @@
 import numpy as np
+import random
 
 # This file contains the rules for the Hanabi game agent. The rules are implemented as methods of the Rules class. The Rules class is used by the Policy class to generate policies for the agent.
 class Rule:
@@ -226,11 +227,21 @@ class Rule:
 
         return oldest_card
 
-    # goes through every oponents card and checks if it can be played
+    # goes through every oponents card and checks if it is useful:
+    # Criteria:
+    # 1 - can be played in the next round by opponent
+    # 2 - is of rank 5 (rarest cards)
+    # 3 - has 3 or more card with attributes in common
+    # 4 - has 2 cards with attributes in common (this one is only returned 50% of the time)
     def tell_anyone_about_useful_card(self):
         # can't tell if there are no more info tokens
         if 1 not in self._obs_remaining_info_tokens:
             return None
+        
+        actions_useful = []
+        actions_5s = []
+        colors = [0,0,0,0,0]
+        ranks = [0,0,0,0,0]
         
         counter = 0
         for other_cards_key, other_cards_info_key in zip(self._obs_other_players_hands, self._obs_other_players_cards_info):
@@ -238,22 +249,57 @@ class Rule:
             other_cards_info = self._obs_other_players_cards_info[other_cards_info_key]
             # need to go through each card at a time
             for other_card, other_card_info in zip(other_cards, other_cards_info):
+                color_info = other_card_info[25:30].tolist()
+                rank_info = other_card_info[30:35].tolist()
                 for color in range(5):
                     for rank in range(5):
                         if other_card[color*5 + rank] == 1:
                             indexes = [color, rank]
-                # if the card being analyzed is the next in line for its color, it's useful
+                # if the card being analyzed is the next in line for its color, it's the most useful
                 if sum(self._obs_firework_info[indexes[0]]) == indexes[1]:
-                    color_info = other_card_info[25:30].tolist()
-                    rank_info = other_card_info[30:35].tolist()
                     if color_info.count(1) > 1 or color_info.count(1) == 0:
                         if self._mask[indexes[0] + 10 + counter*10] == 1:
-                            return indexes[0] + 10 + counter*10
+                            actions_useful.append(indexes[0] + 10 + counter*10)
                     elif rank_info.count(1) > 1 or rank_info.count(1) == 0:
                         if self._mask[indexes[1] + 15 + counter*10] == 1:
-                            return indexes[1] + 15 + counter*10
-                        
+                            actions_useful.append(indexes[1] + 15 + counter*10)
+                
+                # we also consider 5s useful cards to tell because the game only has 1 of each color
+                if indexes[1] == 4:
+                    if rank_info[4] == 0:
+                        if self._mask[19 + counter*10] == 1:
+                            actions_5s.append(19 + counter*10)
+
+                # also need to gather information in the case of there being more than 2 cards with the same attribute 
+                # (color or rank) and that attribute hasn't been revealed, we also consider this useful
+                if color_info.count(1) > 1 or color_info.count(1) == 0:
+                    colors[indexes[0]] += 1
+                if rank_info.count(1) > 1 or rank_info.count(1) == 0:
+                    ranks[indexes[1]] += 1
+
             counter = counter + 1
+
+            if len(actions_useful) > 0:
+                return actions_useful[0]
+            if len(actions_5s) > 0:
+                return actions_5s[0]
+            
+            if max(colors) >= 3:
+                if self._mask[colors.index(max(colors)) + 10] == 1:
+                    return colors.index(max(colors)) + 10
+            if max(ranks) >= 3:
+                if self._mask[ranks.index(max(ranks)) + 10] == 1:
+                    return ranks.index(max(ranks)) + 15
+            if max(colors) == 2:
+                # only has a 50% chance of returning if attribute is shared among 2 cards
+                rand = random.randint(0,1)
+                if rand == 1 and self._mask[colors.index(max(colors))] == 1:
+                    return colors.index(max(colors))
+            if max(ranks) == 2:
+                # only has a 50% chance of returning if attribute is shared among 2 cards
+                rand = random.randint(0,1)
+                if rand == 1 and self._mask[ranks.index(max(ranks))] == 1:
+                    return ranks.index(max(ranks))
 
         return None
 
