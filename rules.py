@@ -291,13 +291,13 @@ class Rule:
                 if self._mask[ranks.index(max(ranks)) + 10] == 1:
                     return ranks.index(max(ranks)) + 15
             if max(colors) == 2:
-                # only has a 50% chance of returning if attribute is shared among 2 cards
-                rand = random.randint(0,1)
+                # only has a 33% chance of returning if attribute is shared among 2 cards
+                rand = random.randint(0,2)
                 if rand == 1 and self._mask[colors.index(max(colors))] == 1:
                     return colors.index(max(colors))
             if max(ranks) == 2:
-                # only has a 50% chance of returning if attribute is shared among 2 cards
-                rand = random.randint(0,1)
+                # only has a 33% chance of returning if attribute is shared among 2 cards
+                rand = random.randint(0,2)
                 if rand == 1 and self._mask[ranks.index(max(ranks))] == 1:
                     return ranks.index(max(ranks))
 
