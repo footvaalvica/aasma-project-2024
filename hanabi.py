@@ -43,9 +43,9 @@ for agent in env.agent_iter():
         else:
             player_cards = env.observe("player_0")["observation"][0:125]
         fireworks = obs[167:192]
-        env.errors += update_errors(player_cards, fireworks, action)
+        env.errors[agent] += update_errors(player_cards, fireworks, action)
 
-        print(f"errors are {env.errors}")
+        print(f"errors are {env.errors[agent]}")
         # need to update cards after every play
         cards_age[agent] = update_card_age(card_age, action)
 

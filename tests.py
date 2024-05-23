@@ -14,7 +14,7 @@ except:
 # write the first line of the csv that will contain the headers
 with open('results.csv', mode='w') as results_file:
     results_writer = csv.writer(results_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-    results_writer.writerow(["Policy 1", "Policy 2", "Score", "Errors", "Number of actions taken", "Remaining information tokens"])
+    results_writer.writerow(["Policy 1", "Policy 2", "Score", "Errors Policy 1", "Errors Policy 2", "Number of actions taken", "Remaining information tokens"])
 
 # If you want to replay a match, you can copy the action history from the console and paste it here
 history = []
@@ -71,7 +71,7 @@ def run_match(policy1, policy2, seed):
                 # # policy.update(env,agent,mask,obs,card_age)
                 with open('results.csv', mode='a') as results_file:
                     results_writer = csv.writer(results_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-                    results_writer.writerow([policy1.__name__, policy2.__name__,policy.calculate_score(), env.errors, len(env.action_history), int(policy.get_information_tokens())])
+                    results_writer.writerow([policy1.__name__, policy2.__name__,policy.calculate_score(), env.errors["player_0"], env.errors["player_1"], len(env.action_history), int(policy.get_information_tokens())])
         else:
             mask = observation["action_mask"]
             obs = observation["observation"]
@@ -92,7 +92,7 @@ def run_match(policy1, policy2, seed):
             else:
                 player_cards = env.observe("player_0")["observation"][0:125]
             fireworks = obs[167:192]
-            env.errors += update_errors(player_cards, fireworks, action)
+            env.errors[agent] += update_errors(player_cards, fireworks, action)
 
             # print the hanabi score
             print(f"Hanabi score: {policy.calculate_score()}")
@@ -129,7 +129,7 @@ def replay_match(action_history, seed=42):
             else:
                 player_cards = env.observe("player_0")["observation"][0:125]
             fireworks = obs[167:192]
-            env.errors += update_errors(player_cards, fireworks, action)
+            env.errors[agent] += update_errors(player_cards, fireworks, action)
 
         env.step(action)
 
