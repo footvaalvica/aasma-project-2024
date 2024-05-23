@@ -42,7 +42,7 @@ class Policy:
         return sum(self.rule._obs_remaining_info_tokens)
 
     def get_life_tokens(self):
-        return self.rule._obs_remaining_life_tokens
+        return sum(self.rule._obs_remaining_life_tokens)
 
     def calculate_weighted_score(self, weights=[10, 1, 3]):
         actual_score = self.calculate_score()

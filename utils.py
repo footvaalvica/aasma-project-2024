@@ -78,8 +78,6 @@ def print_random_ascii_art():
                                      7<..%
 """
     )
-    
-
 
 def update_card_age(card_age, action: int):
     # increment all elements by 1

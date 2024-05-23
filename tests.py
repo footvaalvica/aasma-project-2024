@@ -14,22 +14,23 @@ except:
 # write the first line of the csv that will contain the headers
 with open('results.csv', mode='w') as results_file:
     results_writer = csv.writer(results_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-    results_writer.writerow(["Policy 1", "Policy 2", "Score", "Number of actions taken", "Remaining information tokens"])
+    results_writer.writerow(["Policy 1", "Policy 2", "Score", "Errors", "Number of actions taken", "Remaining information tokens"])
 
 # If you want to replay a match, you can copy the action history from the console and paste it here
 history = []
 
 # Policies' whitelist and blacklist 
-whitelist = ['MCTS_IGGI']
+whitelist = []
 blacklist = ['MCTS', 'PlayerInput', 'Policy'] # Policies NOT to run!!
 
 HARDSEEDS = [13, 87, 95, 10, 42]
 seeds = []
+
 # Generate x amount of seeds like so, python tests.py 10 -> generates 10 seeds
 if len(sys.argv) > 1:
-    len = int(sys.argv[1])
+    length_in = int(sys.argv[1])
     new_seeds = []
-    for i in range(len):
+    for i in range(length_in):
         seeds.append(randint(0, 1000))
 else: # otherwise use hardcoded seeds
     seeds = HARDSEEDS
@@ -65,6 +66,7 @@ def run_match(policy1, policy2, seed):
             if agent == "player_0":
                 print("Game over")
                 print_random_ascii_art()
+                print(env.action_history)
                 # write the score to another row in the csv file
                 # # policy.update(env,agent,mask,obs,card_age)
                 with open('results.csv', mode='a') as results_file:
@@ -131,11 +133,12 @@ def replay_match(action_history, seed=42):
 
         env.step(action)
 
-# replay_match(history, seed=12) 
+# replay_match(history, seed=12)
+
 for policy1 in policy_classes:
     if policy1.__name__ not in whitelist:
         continue
     for policy2 in policy_classes:
-        # for seed in seeds:
-        #    run_match(policy1, policy2, seed)
-        run_match(policy1, policy2, seeds[0])
+        for seed in seeds:
+           run_match(policy1, policy2, seed)
+        # # run_match(policy1, policy2, seeds[0])
