@@ -67,6 +67,7 @@ def run_match(policy1, policy2, seed):
             if agent == "player_0":
                 print("Game over")
                 print_random_ascii_art()
+                print("The action history is:")
                 print(env.action_history)
                 # write the score to another row in the csv file
                 # # policy.update(env,agent,mask,obs,card_age)
