@@ -2,8 +2,8 @@
 
 ## Best way
 
-For setting up the environment, we recommend using the [`devenv`](https://devenv.sh/) tool, and we will assume you will be using it for this guide. After `devenv` has been installed, following the guide in their page, to execute our code is as simple as running `devenv shell` inside our project folder and then running `python hanabi.py`
+For setting up the environment, we recommend using the [`devenv`](https://devenv.sh/) tool, and we will assume you will be using it for this guide. After `devenv` has been installed, following the [guide](https://devenv.sh/getting-started/) in their page, to execute our code is as simple as running `devenv shell` inside our project folder and then running `python hanabi.py`
 
 ## The `pip` alternative
 
-We also provide a `requirements.txt` file, but we haven't tested it and aren't sure if it works.
+We also provide a `requirements.txt` file, but we haven't tested it and aren't sure if it works. To install the dependencies, you can run `pip install -r requirements.txt` inside our project folder and then run `python hanabi.py`
