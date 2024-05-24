@@ -9,7 +9,7 @@ history = []
 
 # Policies' whitelist and blacklist 
 whitelist = []
-blacklist = ['MCTS', 'PlayerInput', 'Policy'] # Policies NOT to run!!
+blacklist = ['MCTS', 'Policy'] # Policies NOT to run!!
 
 # Get all policies under "policies" module
 def find_subclasses(module, clazz, blacklist=[]):
