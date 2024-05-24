@@ -1,0 +1,15 @@
+absl-py==2.1.0
+attrs==23.2.0
+cloudpickle==3.0.0
+contextlib2==21.6.0
+Farama-Notifications==0.0.4
+gymnasium==0.29.1
+ml_collections==0.1.1
+numpy==1.26.4
+open-spiel==1.4
+pettingzoo==1.24.3
+PyYAML==6.0.1
+scipy==1.13.0
+Shimmy==1.3.0
+six==1.16.0
+typing_extensions==4.11.0

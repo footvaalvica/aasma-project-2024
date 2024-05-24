@@ -14,5 +14,4 @@ devenv.local.nix
 *.pyd
 __pycache__/
 
-*.txt
 results.csv
